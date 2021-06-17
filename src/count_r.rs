@@ -43,7 +43,7 @@ fn number_of_runs<T : std::cmp::Eq>(arr : &[T]) -> usize {
 #[test]
 fn test_compute_bwt() {
     for i in 1..8 {
-        //@ only for uneven (counting at zero) Fibonacci words, we have the property that the BWT has exactly two runs. See https://dx.doi.org/10.1007/978-3-319-23660-5_12
+        //@ only for uneven (counting starts at one) Fibonacci words, we have the property that the BWT has exactly two runs. See https://dx.doi.org/10.1007/978-3-319-23660-5_12
         let text = fibonacci::fibonacci(2*i+1); 
         let bwt = compute_bwt(&text);
         let runs = number_of_runs(&bwt);

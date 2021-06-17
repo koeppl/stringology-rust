@@ -15,6 +15,14 @@ fn thuemorse(i : u8) -> Vec<u8> {
     return str
 }
 
+#[test]
+fn test_thuemorse() {
+    assert_eq!(b"ab", thuemorse(1).as_slice());
+    assert_eq!(b"abba", thuemorse(2).as_slice());
+    assert_eq!(b"abbabaab", thuemorse(3).as_slice());
+    assert_eq!(b"abbabaabbaababba", thuemorse(4).as_slice());
+}
+
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     if args.len() < 2 {
