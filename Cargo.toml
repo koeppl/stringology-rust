@@ -14,6 +14,10 @@ env_logger = "0.8.3"
 clap = "3.0.0-beta.2"
 
 [[bin]]
+name = "fibonacci"
+path = "src/fibonacci.rs"
+
+[[bin]]
 name = "thuemorse"
 path = "src/thuemorse.rs"
 

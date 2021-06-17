@@ -7,6 +7,7 @@ It currently consists of
    - `count_sigma` : counts the number of different characters
  - generators
    - `thuemorse` : computes the n-th Thue morse code
+   - `fibonacci` : computes the n-th Fibonacci word
 
 ## Usage
 
