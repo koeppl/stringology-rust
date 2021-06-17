@@ -9,11 +9,13 @@ const SQRT_5 : f64 = 2.23606797749978969641; //(5.0 as f64).sqrt();
 const GOLDEN_RATIO : f64 = (1.0 + SQRT_5)/2.0;
 const PSI : f64 = - 1.0/GOLDEN_RATIO;
 
-
+/// Estimates the k-th Fibonacci number with Binet's formula
 fn fibonacci_number_estimate(k : u8) -> f64 {
     (GOLDEN_RATIO.powi(k as i32) - PSI.powi(k as i32))/SQRT_5
 }
 
+/// Computes the k-th Fibonacci word
+/// Reference: https://en.wikipedia.org/wiki/Fibonacci_word
 fn fibonacci(k : u8) -> Vec<u8> {
     let length = (fibonacci_number_estimate(k+1)+1.0) as usize + 1;
     let mut text : Vec<u8> = Vec::with_capacity(length);
