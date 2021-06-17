@@ -16,7 +16,7 @@ fn fibonacci_number_estimate(k : u8) -> f64 {
 
 /// Computes the k-th Fibonacci word
 /// Reference: https://en.wikipedia.org/wiki/Fibonacci_word
-fn fibonacci(k : u8) -> Vec<u8> {
+pub fn fibonacci(k : u8) -> Vec<u8> {
     let length = (fibonacci_number_estimate(k+1)+1.0) as usize + 1;
     let mut text : Vec<u8> = Vec::with_capacity(length);
     unsafe { text.set_len(length); }

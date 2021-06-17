@@ -1,5 +1,4 @@
 
-
 /// reads a file into a u8 vector
 /// - `prefix_length` : the prefix in bytes to read from `filename`. 0 means to read the entire file
 pub fn file2byte_vector(filename: &str, prefix_length : usize) -> Vec<u8> {

@@ -22,6 +22,13 @@ fn count_sigma(s : &[u8]) -> u8 {
     inc
 }
 
+#[test]
+fn test_count_sigma() {
+    assert_eq!(count_sigma(b"aaa"), 1);
+    assert_eq!(count_sigma(b"aba"), 2);
+    assert_eq!(count_sigma(b"abc"), 3);
+}
+
 
 fn main() {
     let matches = clap_app!(myapp =>
