@@ -1,6 +1,11 @@
 const CHR_A : u8 = 'a' as u8;
 const CHR_B : u8 = 'b' as u8;
 
+/// algorithm computing the i-th Thue-Morse sequence
+/// https://oeis.org/A010060
+/// It uses the fact that 
+/// a) TM_k = TM_k-1 \bar{TM_k-1}
+/// b) TM_k is a prefix of TM_{k+1}
 fn thuemorse(i : u8) -> Vec<u8> {
     let n = 1<<i;
     let mut str : Vec<u8> = Vec::with_capacity(n);
@@ -17,10 +22,10 @@ fn thuemorse(i : u8) -> Vec<u8> {
 
 #[test]
 fn test_thuemorse() {
-    assert_eq!(b"ab", thuemorse(1).as_slice());
-    assert_eq!(b"abba", thuemorse(2).as_slice());
-    assert_eq!(b"abbabaab", thuemorse(3).as_slice());
-    assert_eq!(b"abbabaabbaababba", thuemorse(4).as_slice());
+    assert_eq!(b"ab"               , thuemorse(1).as_slice());
+    assert_eq!(b"abba"             , thuemorse(2).as_slice());
+    assert_eq!(b"abbabaab"         , thuemorse(3).as_slice());
+    assert_eq!(b"abbabaabbaababba" , thuemorse(4).as_slice());
 }
 
 fn main() {

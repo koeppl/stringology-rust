@@ -22,6 +22,10 @@ name = "fibonacci"
 path = "src/fibonacci.rs"
 
 [[bin]]
+name = "perioddoubling"
+path = "src/perioddoubling.rs"
+
+[[bin]]
 name = "thuemorse"
 path = "src/thuemorse.rs"
 
