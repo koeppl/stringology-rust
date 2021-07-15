@@ -40,3 +40,7 @@ path = "src/count_z.rs"
 [[bin]]
 name = "count_sigma"
 path = "src/count_sigma.rs"
+
+[[bin]]
+name = "lyndonfactorization"
+path = "src/lyndonfactorization.rs"

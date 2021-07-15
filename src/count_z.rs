@@ -38,7 +38,8 @@ fn decode_lz77(factors : &[LZFactor]) -> Vec<u8> {
     text
 }
 
-
+/// Computes the Lempel-Ziv 77 factorization
+/// Reference: Enno Ohlebusch, Simon Gog: "Lempel-Ziv Factorization Revisited". CPM 2011: 15-26
 fn compute_lz77(text : &[u8], lcprmq: &SegmentPoint<u32, segment_tree::ops::Min>, sa: &[i32], isa: &[i32], lcp: &[u32], nsv: &[u32], psv: &[u32]) -> Vec<LZFactor> {
     // LZ77 computation
     let mut factors = Vec::new();
