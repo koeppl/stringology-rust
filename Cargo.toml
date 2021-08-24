@@ -1,5 +1,5 @@
 [package]
-name = "stringenerators"
+name = "stringology"
 version = "0.1.0"
 authors = ["Dominik Köppl <dominik.koeppl@uni-dortmund.de>"]
 edition = "2018"
@@ -44,3 +44,11 @@ path = "src/count_sigma.rs"
 [[bin]]
 name = "lyndonfactorization"
 path = "src/lyndonfactorization.rs"
+
+[[bin]]
+name = "debruijn"
+path = "src/debruijn.rs"
+
+[[bin]]
+name = "entropy"
+path = "src/entropy.rs"

@@ -7,10 +7,12 @@ It currently consists of
    - `count_r` : counts the number of runs in the BWT obtained by the suffix array
    - `count_sigma` : counts the number of different characters
    - `count_z` : counts the number of overlapping LZ77 factors
+   - `entropy` : counts the k-th order empirical entropy
  - generators
    - `thuemorse` : computes the n-th [Thue-Morse word](https://oeis.org/A010060)
    - `fibonacci` : computes the n-th [Fibonacci word](https://oeis.org/A003849)
    - `perioddoubling` computes the n-th [period-doubling sequence](https://oeis.org/A096268)
+   - `debruijn` : computes a binary de Bruijin word of order n
 
 ## Usage
 
