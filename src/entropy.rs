@@ -47,14 +47,12 @@ fn kth_order_entropy(text : &[u8], k : usize) -> f64 {
     let compute_context = |start : usize, length : usize| -> f64 {
         let mut v : Vec<u8> = Vec::with_capacity(length);
         for i in start..start+length {
-            v.push(text[sa[i] as usize + k]);
+            let pos = sa[i] as usize + k;
+            if pos < text.len() { //@ for binary texts having 0 byte the 0 byte at the end can be matched with it!
+                v.push(text[pos]);
+            }
         }
         (length as f64) * zero_order_entropy(v.as_slice())
-        //
-        // let start_position = sa[lcpindex] as usize;
-        // let end_position = start_position + k;
-        // assert_lt!(start_position, end_position);
-        // (count as f64) * zero_order_entropy(&text[start_position..end_position])
     };
 
     let mut sum = 0 as f64;
@@ -106,7 +104,11 @@ fn main() {
     use std::time::Instant;
     let now = Instant::now();
     info!("read text");
-    let text = common::file2byte_vector(&text_filename, prefix_length);
+    let text = {
+        let mut text = common::file2byte_vector(&text_filename, prefix_length);
+        text.push(0u8);
+        text
+    };
 
     info!("compute sigma");
 
