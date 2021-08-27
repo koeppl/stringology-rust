@@ -52,3 +52,7 @@ path = "src/debruijn.rs"
 [[bin]]
 name = "entropy"
 path = "src/entropy.rs"
+
+[[bin]]
+name = "escape"
+path = "src/escape.rs"
