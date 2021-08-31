@@ -1,30 +1,29 @@
-extern crate byte_string;
 extern crate cdivsufsort;
 extern crate env_logger;
 #[macro_use] extern crate clap;
 #[macro_use] extern crate more_asserts;
 
-mod common;
-mod datastructures;
+#[allow(dead_code)] mod common;
+#[allow(dead_code)] mod datastructures;
 
 extern crate log;
 use log::info;
 
-fn zero_order_entropy(s : &[u8]) -> f64 {
-    assert_gt!(s.len(), 0);
+fn zero_order_entropy<'a, I: Iterator<Item = &'a u8>>(text_iter : I) -> f64 {
     let mut char_counters : Vec<usize> = vec![0; std::u8::MAX as usize + 1]; 
-    for c in s.iter() {
-        let index = *c as usize;
+    let mut total_count = 0;
+    for c in text_iter {
+        let index : usize = (*c).into();
         char_counters[index] += 1;
+        total_count += 1;
     }
     let mut sum = 0 as f64;
-    let n = s.len() as f64;
     for count in char_counters {
         if count > 0 {
-            sum += (count as f64) * ((n / count as f64).log2());
+            sum += (count as f64) * ((total_count as f64 / count as f64).log2());
         }
     }
-    sum / n
+    sum / (total_count as f64)
 }
 
 //@ Uses the suffix array and the LCP array to compute the kth order entropy
@@ -35,6 +34,7 @@ fn kth_order_entropy(text : &[u8], k : usize) -> f64 {
     assert_gt!(k, 0);
     let sa = { 
         let mut sa = vec![0; text.len()];
+        assert!(!text[..text.len()-1].into_iter().any(|&x| x == 0));
         cdivsufsort::sort_in_place(&text, sa.as_mut_slice());
         sa
     };
@@ -52,7 +52,7 @@ fn kth_order_entropy(text : &[u8], k : usize) -> f64 {
                 v.push(text[pos]);
             }
         }
-        (length as f64) * zero_order_entropy(v.as_slice())
+        (length as f64) * zero_order_entropy(v.iter())
     };
 
     let mut sum = 0 as f64;
@@ -77,10 +77,10 @@ fn kth_order_entropy(text : &[u8], k : usize) -> f64 {
 
 #[test]
 fn test_entropy() {
-    assert_eq!(zero_order_entropy(b"aaaaa"), 0.0);
-    assert_eq!(zero_order_entropy(b"bbbb"), 0.0);
-    assert_eq!(zero_order_entropy(b"abab"), zero_order_entropy(b"aabb"));
-    assert_eq!(zero_order_entropy(b"ab"), zero_order_entropy(b"aabb"));
+    assert_eq!(zero_order_entropy(b"aaaaa".iter()), 0.0);
+    assert_eq!(zero_order_entropy(b"bbbb".iter()), 0.0);
+    assert_eq!(zero_order_entropy(b"abab".iter()), zero_order_entropy(b"aabb".iter()));
+    assert_eq!(zero_order_entropy(b"ab".iter()), zero_order_entropy(b"aabb".iter()));
 }
 
 
@@ -89,7 +89,7 @@ fn main() {
         (about: "computes the zero order entropy of a byte text")
         (@arg order: -o --order +takes_value "the order of the entropy")
         (@arg prefix: -p --prefix +takes_value "the length of the prefix to parse")
-        (@arg input: -f --file +takes_value +required "the input file to use")
+        (@arg input: -i --input +takes_value +required "the input file to use")
     ).get_matches();
 
     let text_filename = matches.value_of("input").unwrap();
@@ -103,16 +103,18 @@ fn main() {
 
     use std::time::Instant;
     let now = Instant::now();
+
     info!("read text");
+
     let text = {
-        let mut text = common::file2byte_vector(&text_filename, prefix_length);
+        let mut text = common::file_or_stdin2byte_vector(&matches.value_of("input"), prefix_length);
         text.push(0u8);
         text
     };
 
-    info!("compute sigma");
+    info!("compute entropy");
 
-    let h0 = if order == 0 { zero_order_entropy(&text) }  else { kth_order_entropy(&text, order) };
+    let h0 = if order == 0 { zero_order_entropy(text.iter()) }  else { kth_order_entropy(&text, order) };
 
     println!("RESULT algo=count_entropy order={} time_ms={} length={} entropy={} file={}", order, now.elapsed().as_millis(), text.len(), h0, text_filename);
 

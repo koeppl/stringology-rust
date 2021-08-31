@@ -8,7 +8,7 @@ function die {
 kFilename="$1"
 [[ -r "$kFilename" ]] || die "cannot read $kFilename"
 
-result_line=$(cargo run --bin=count_sigma -- --file "$kFilename" | grep '^RESULT')
+result_line=$(cargo run --bin=count_sigma -- --input "$kFilename" | grep '^RESULT')
 
 echo "dataset & \$n\$ & \$\\sigma\$ & \$z\$ & \$r\$ & \$H_0\$ & \$H_1\$ & \$H_2\$ & \$H_3\$ & \$H_4\$ \\\\\\"
 
@@ -18,13 +18,13 @@ echo -n $result_line | sed 's@.* length=\([0-9]\+\) .*@\1@'
 echo -n " & "
 echo -n $result_line | sed 's@.* sigma=\([0-9]\+\) .*@\1@'
 
-bwtruns=$(cargo run --bin=count_r -- -d --file "$kFilename" | grep '^RESULT' | sed 's@.* bwt_runs=\([0-9]\+\) .*@\1@')
+bwtruns=$(cargo run --bin=count_r -- -d --input "$kFilename" | grep '^RESULT' | sed 's@.* bwt_runs=\([0-9]\+\) .*@\1@')
 echo -n " & $bwtruns " 
-lz77factors=$(cargo run --bin=count_z -- --file "$kFilename" | grep '^RESULT' | sed 's@.* factors=\([0-9]\+\).*@\1@')
+lz77factors=$(cargo run --bin=count_z -- --input "$kFilename" | grep '^RESULT' | sed 's@.* factors=\([0-9]\+\).*@\1@')
 echo -n " & $lz77factors " 
 
 for k in $(seq 0 4); do
-	entropy=$(cargo run --bin=entropy -- --order "$k" --file "$kFilename" | grep '^RESULT' | sed 's@.* entropy=\([0-9\.]\+\) .*@\1@')
+	entropy=$(cargo run --bin=entropy -- --order "$k" --input "$kFilename" | grep '^RESULT' | sed 's@.* entropy=\([0-9\.]\+\) .*@\1@')
 	echo -n " & $entropy "
 done
 

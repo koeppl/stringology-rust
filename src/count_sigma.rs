@@ -1,9 +1,7 @@
-extern crate byte_string;
-extern crate cdivsufsort;
 extern crate env_logger;
 #[macro_use] extern crate clap;
 
-mod common;
+#[allow(dead_code)] mod common;
 
 extern crate log;
 use log::info;
@@ -35,7 +33,7 @@ fn main() {
     let matches = clap_app!(myapp =>
         (about: "computes the number of characters in a byte text")
         (@arg prefix: -p --prefix +takes_value "the length of the prefix to parse")
-        (@arg input: -f --file +takes_value +required "the input file to use")
+        (@arg input: -i --input +takes_value +required "the input file to use")
     ).get_matches();
 
     let text_filename = matches.value_of("input").unwrap();

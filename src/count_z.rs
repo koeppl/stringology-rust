@@ -4,8 +4,8 @@ extern crate num;
 use segment_tree::SegmentPoint;
 use segment_tree::ops::Min;
 
-mod datastructures;
-mod common;
+#[allow(dead_code)] mod datastructures;
+#[allow(dead_code)] mod common;
 mod test;
 
 extern crate cdivsufsort;
@@ -111,7 +111,7 @@ fn main() {
 		(version: "1.0")
 		(about: "computes the number of LZ77 factors")
 		(@arg prefix: -p --prefix +takes_value "the length of the prefix to parse")
-		(@arg input: -f --file +takes_value +required "the input file to use")
+		(@arg input: -i --input +takes_value +required "the input file to use")
 	).get_matches();
 
 	let text_filename = matches.value_of("input").unwrap();

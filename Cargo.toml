@@ -56,3 +56,7 @@ path = "src/entropy.rs"
 [[bin]]
 name = "escape"
 path = "src/escape.rs"
+
+[[bin]]
+name = "reverse"
+path = "src/reverse.rs"

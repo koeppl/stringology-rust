@@ -1,8 +1,8 @@
 #[macro_use] extern crate more_asserts;
 extern crate num;
 
-mod datastructures;
-mod common;
+#[allow(dead_code)] mod datastructures;
+#[allow(dead_code)] mod common;
 mod test;
 
 extern crate cdivsufsort;
@@ -54,6 +54,7 @@ fn test_duval() {
         let n = text.len();
         let sa = { 
             let mut sa = vec![0; n];
+            assert!(!text[..text.len()-1].into_iter().any(|&x| x == 0));
             cdivsufsort::sort_in_place(&text, sa.as_mut_slice());
             sa
         };
@@ -93,7 +94,7 @@ fn main() {
 		(version: "1.0")
 		(about: "computes the Lyndon factors with Duval's algorithm")
 		(@arg prefix: -p --prefix +takes_value "the length of the prefix to parse")
-		(@arg input: -f --file +takes_value +required "the input file to use")
+		(@arg input: -i --input +takes_value +required "the input file to use")
 	).get_matches();
 
 	let text_filename = matches.value_of("input").unwrap();

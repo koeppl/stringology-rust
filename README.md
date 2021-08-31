@@ -13,6 +13,8 @@ It currently consists of
    - `fibonacci` : computes the n-th [Fibonacci word](https://oeis.org/A003849)
    - `perioddoubling` computes the n-th [period-doubling sequence](https://oeis.org/A096268)
    - `debruijn` : computes a binary de Bruijin word of order n
+ - transforms
+   - `reverse` : reverse the input byte-wise
 
 ## Usage
 

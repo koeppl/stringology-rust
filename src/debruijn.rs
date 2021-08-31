@@ -23,6 +23,7 @@ T: ?Sized + std::ops::Index<usize, Output = u8>,
     return true;
 }
 
+#[allow(dead_code)]
 fn is_necklace_slice(text: &[u8]) -> bool {
     is_necklace(text, text.len())
 }

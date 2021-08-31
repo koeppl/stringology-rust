@@ -8,34 +8,23 @@ use std::collections::HashMap;
 extern crate log;
 use log::{info,debug};
 
-#[allow(dead_code)] mod fibonacci;
-mod common;
+#[allow(dead_code)] mod common;
 
 
 use std::io::prelude::*;
-use std::io::BufWriter;
-use std::net::TcpStream;
+// use std::io::BufWriter;
+// use std::net::TcpStream;
 
-fn read_char<R : std::io::Read>(reader : &mut R) -> std::io::Result<u8> {
-    let mut buffer = [0u8];
-    match reader.read(buffer.as_mut()) {
-        Result::Ok(u) => {
-            if u == 1 { Ok(buffer[0]) } else { Err(std::io::Error::new(std::io::ErrorKind::Other, "end of file")) }
-            // assert_eq!(u, 1);
-        }
-        Err(error) => Err(error)
-    }
-}
 
 fn main() {
-    let matches = clap_app!(myapp =>
-        (about: "computes the BWT via divsufsort")
-        (@arg revert: -r --revert "unescapes")
-        (@arg escape: --escape +takes_value  +required "the escape symbol")
-        (@arg from: --from +takes_value +required "byte codes that need to be escaped, a list separeted by commas")
-        (@arg to: --to +takes_value  +required "list byte codes that are safe and equal of length to from")
-        (@arg prefix: -p --prefix +takes_value "the length of the prefix to parse")
-        (@arg input: -i --infile +takes_value "optional: the input file to read (otherwise read from stdin")
+    let matches = clap_app!(escape =>
+        (about: "escape byte sequences")
+        (@arg revert: -r --revert  "unescapes")
+        (@arg escape: -e --escape  +takes_value  +required "the escape symbol")
+        (@arg from:   -f --from    +takes_value +required "byte codes that need to be escaped, a list separeted by commas")
+        (@arg to:     -t --to      +takes_value  +required "list byte codes that are safe and equal of length to from")
+        (@arg prefix: -p --prefix  +takes_value "optional: the length of the prefix to parse")
+        (@arg input:  -i --infile  +takes_value "optional: the input file to read (otherwise read from stdin")
         (@arg output: -o --outfile +takes_value "optional: the output file to write (otherwise write from stdout")
     ).get_matches();
 
@@ -48,45 +37,14 @@ fn main() {
     let from_symbols : Vec<u8> = matches.value_of("from").unwrap().split(",").map(|s| -> u8 { s.parse::<u8>().unwrap()  }).collect();
     let to_symbols : Vec<u8> = matches.value_of("to").unwrap().split(",").map(|s| -> u8 { s.parse::<u8>().unwrap()  }).collect();
     let is_reversion = matches.is_present("revert");
-
-
-    let outfilename = matches.value_of("output");
-	let out_writer = match outfilename {
-		Some(filename) => {
-			info!("filename: {}", filename);
-			let path = std::path::Path::new(filename);
-			Box::new(std::fs::File::create(&path).unwrap()) as Box<dyn std::io::Write>
-		}
-		None => Box::new(std::io::stdout()) as Box<dyn std::io::Write>,
-	};
-
-    let infilename = matches.value_of("input");
-	let mut reader = match infilename {
-		Some(filename) => {
-			info!("filename: {}", filename);
-			let path = std::path::Path::new(filename);
-			Box::new(std::io::BufReader::new(std::fs::File::open(&path).unwrap())) as Box<dyn std::io::Read>
-		}
-		None => Box::new(std::io::stdin()) as Box<dyn std::io::Read>,
-	};
-    
-	let mut writer = std::io::BufWriter::new(out_writer); //std::io::stdout());
-    // let stdin = std::io::stdin();
-    // let mut reader = std::io::BufReader::new(std::io::stdin());
-
-    // let stdin = std::io::stdin();
-    // let mut reader = stdin.lock();
-
+    let mut reader = common::stream_or_stdin(matches.value_of("input"));
+    let mut writer = common::stream_or_stdout(matches.value_of("output"));
 
     //@ sanity checks
     assert_eq!(from_symbols.len(), to_symbols.len());
     assert!(! from_symbols.contains(&escape_symbol));
     assert!(! to_symbols.contains(&escape_symbol));
     assert!(! from_symbols.iter().any(|&i| to_symbols.contains(&i)));
-
-    
-
-
 
     env_logger::init();
     info!("prefix_length: {}", prefix_length);
@@ -101,11 +59,11 @@ fn main() {
             revert_mapping
         };
         for _ in 0..prefix_length {
-            match read_char(&mut reader) {
+            match common::read_char(&mut reader) {
                 Err(_) => break,
                 Ok(cur_char) => {
                     if cur_char == escape_symbol {
-                        let next_char = read_char(&mut reader).unwrap();
+                        let next_char = common::read_char(&mut reader).unwrap();
                         if next_char == escape_symbol {
                             writer.write(&[escape_symbol]).unwrap();
                             continue;
@@ -126,7 +84,7 @@ fn main() {
             char_mapping
         };
         for _ in 0..prefix_length {
-            match read_char(&mut reader) {
+            match common::read_char(&mut reader) {
                 Err(_) => break,
                 Ok(cur_char) => {
                     if cur_char == escape_symbol {
