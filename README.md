@@ -8,6 +8,7 @@ It currently consists of
    - `count_sigma` : counts the number of different characters
    - `count_z` : counts the number of overlapping LZ77 factors
    - `entropy` : counts the k-th order empirical entropy
+   - `entropykmer` : counts the k-th order empirical entropy via k-mers, `k \in [1..7]`
  - generators
    - `thuemorse` : computes the n-th [Thue-Morse word](https://oeis.org/A010060)
    - `fibonacci` : computes the n-th [Fibonacci word](https://oeis.org/A003849)

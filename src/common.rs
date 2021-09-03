@@ -8,7 +8,7 @@ pub fn file2byte_vector(filename: &str, prefix_length : usize) -> Vec<u8> {
     let path = std::path::Path::new(filename);
     let mut f = fs::File::open(&path).expect("no file found");
     let metadata = fs::metadata(&path).expect("unable to read metadata");
-    let mut buffer = vec![0; if prefix_length > 0 { prefix_length } else { metadata.len() as usize }];
+    let mut buffer = vec![0; if prefix_length > 0 { std::cmp::min(prefix_length, metadata.len() as usize) } else { metadata.len() as usize }];
 
     f.read(&mut buffer).expect("buffer overflow");
     buffer

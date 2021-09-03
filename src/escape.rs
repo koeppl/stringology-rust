@@ -3,10 +3,10 @@ extern crate cdivsufsort;
 extern crate env_logger;
 use std::collections::HashMap;
 #[macro_use] extern crate clap;
-#[macro_use] extern crate more_asserts;
+// #[macro_use] extern crate more_asserts;
 
 extern crate log;
-use log::{info,debug};
+use log::{info};
 
 #[allow(dead_code)] mod common;
 
