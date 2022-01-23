@@ -27,27 +27,13 @@ fn compute_bwt(text: &Vec<u8>) -> Vec<u8> {
     bwt
 }
 
-/// counts the number of runs in an array `arr`
-fn number_of_runs<T : std::cmp::Eq>(arr : &[T]) -> usize {
-        let mut run_counter = 1; //@ counts the number of character runs
-        let mut prev_char = &arr[0]; //@ the current character of the chracter run
-        for i in 1..arr.len() {
-            if arr[i] != *prev_char {
-                prev_char = &arr[i];
-                run_counter += 1;
-            }
-        }
-        run_counter
-}
-
-
 #[test]
 fn test_compute_bwt() {
     for i in 1..8 {
         //@ only for uneven (counting starts at one) Fibonacci words, we have the property that the BWT has exactly two runs. See https://dx.doi.org/10.1007/978-3-319-23660-5_12
         let text = fibonacci::fibonacci(2*i+1); 
         let bwt = compute_bwt(&text);
-        let runs = number_of_runs(&bwt);
+        let runs = common::number_of_runs(&mut bwt.as_slice());
         assert_eq!(runs, 2);
     }
 }
@@ -113,7 +99,7 @@ fn main() {
         true => compute_bwt_matrix(&text),
         false => compute_bwt(&text) 
     };
-    let r = number_of_runs(&bwt);
+    let r = common::number_of_runs(&mut bwt.as_slice());
     println!("RESULT algo=bwt time_ms={} length={} bwt_runs={} file={} no_dollar={} use_matrix={}", now.elapsed().as_millis(), bwt.len(), r, matches.value_of("input").unwrap_or("stdin"), no_dollar, use_matrix);
 
 }

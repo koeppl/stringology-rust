@@ -27,6 +27,10 @@ name = "perioddoubling"
 path = "src/perioddoubling.rs"
 
 [[bin]]
+name = "kolakoski"
+path = "src/kolakoski.rs"
+
+[[bin]]
 name = "thuemorse"
 path = "src/thuemorse.rs"
 
@@ -37,6 +41,10 @@ path = "src/count_r.rs"
 [[bin]]
 name = "count_z"
 path = "src/count_z.rs"
+
+[[bin]]
+name = "count_lexparse"
+path = "src/count_lexparse.rs"
 
 [[bin]]
 name = "count_sigma"
@@ -65,3 +73,7 @@ path = "src/escape.rs"
 [[bin]]
 name = "reverse"
 path = "src/reverse.rs"
+
+[[bin]]
+name = "parallel"
+path = "src/parallel.rs"
