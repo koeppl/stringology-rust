@@ -2,10 +2,13 @@ extern crate byte_string;
 extern crate cdivsufsort;
 extern crate env_logger;
 #[macro_use] extern crate clap;
+#[macro_use] extern crate more_asserts;
 
 extern crate log;
 use log::{info,debug};
 
+#[allow(dead_code)] mod test;
+#[allow(dead_code)] mod datastructures;
 #[allow(dead_code)] mod fibonacci;
 #[allow(dead_code)] mod common;
 
@@ -38,6 +41,32 @@ fn test_compute_bwt() {
     }
 }
 
+fn compute_bwt_matrix_linear(input: &[u8]) -> Vec<u8> {
+    assert_gt!(input.len(), 0);
+    assert_ne!(input[input.len()-1], 0);
+    let mut text = Vec::new();
+    text.extend_from_slice(input);
+    let n = text.len();
+
+    let mut sa = vec![0; n];
+    assert!(!text[..text.len()-1].into_iter().any(|&x| x == 0));
+    cdivsufsort::sort_in_place(&text, sa.as_mut_slice());
+    let isa = datastructures::inverse_permutation(&sa);
+    let smallest_suffix = isa.iter().position(|&x| x == 0).unwrap();
+    let mut newtext = Vec::new();
+    newtext.reserve(n);
+    for i in smallest_suffix..n {
+        newtext.push(text[i]);
+    }
+    for i in 0..smallest_suffix {
+        newtext.push(text[i]);
+    }
+    newtext.push(0u8);
+    let mut bwt = compute_bwt(&newtext);
+    bwt.remove(bwt.iter().position(|&x| x == 0).unwrap());
+    bwt
+}
+
 /// computes the rightmost column of the BWT matrix
 /// note that this is a O(n^2 lg n) algorithm!
 fn compute_bwt_matrix<T : std::cmp::Ord + Copy>(text: &[T]) -> Vec<T> {
@@ -60,6 +89,20 @@ fn compute_bwt_matrix<T : std::cmp::Ord + Copy>(text: &[T]) -> Vec<T> {
         bwt.push(text[(indices[i]+text.len()-1) % text.len()]);
     }
     bwt
+}
+
+pub const MAX_TEST_ITER : usize = 4096;
+#[test]
+fn test_bwt_matrix() {
+    for text in test::StringTestFactory::new(0..MAX_TEST_ITER as usize, 1) {
+        if text.len() < 2 { continue; }
+        let naive = compute_bwt_matrix(&text[0..text.len()-1]);
+        let clever = compute_bwt_matrix_linear(&text[0..text.len()-1]);
+        if naive != clever {
+            compute_bwt_matrix_linear(&text[0..text.len()-1]);
+        }
+        assert_eq!(naive, clever);
+    }
 }
 
 
