@@ -6,9 +6,9 @@ use std::collections::HashMap;
 // #[macro_use] extern crate more_asserts;
 
 extern crate log;
-use log::{info};
+use log::info;
 
-#[allow(dead_code)] mod common;
+#[allow(dead_code)] mod io;
 
 
 use std::io::prelude::*;
@@ -37,8 +37,8 @@ fn main() {
     let from_symbols : Vec<u8> = matches.value_of("from").unwrap().split(",").map(|s| -> u8 { s.parse::<u8>().unwrap()  }).collect();
     let to_symbols : Vec<u8> = matches.value_of("to").unwrap().split(",").map(|s| -> u8 { s.parse::<u8>().unwrap()  }).collect();
     let is_reversion = matches.is_present("revert");
-    let mut reader = common::stream_or_stdin(matches.value_of("input"));
-    let mut writer = common::stream_or_stdout(matches.value_of("output"));
+    let mut reader = io::stream_or_stdin(matches.value_of("input"));
+    let mut writer = io::stream_or_stdout(matches.value_of("output"));
 
     //@ sanity checks
     assert_eq!(from_symbols.len(), to_symbols.len());
@@ -59,11 +59,11 @@ fn main() {
             revert_mapping
         };
         for _ in 0..prefix_length {
-            match common::read_char(&mut reader) {
+            match io::read_char(&mut reader) {
                 Err(_) => break,
                 Ok(cur_char) => {
                     if cur_char == escape_symbol {
-                        let next_char = common::read_char(&mut reader).unwrap();
+                        let next_char = io::read_char(&mut reader).unwrap();
                         if next_char == escape_symbol {
                             writer.write(&[escape_symbol]).unwrap();
                             continue;
@@ -84,7 +84,7 @@ fn main() {
             char_mapping
         };
         for _ in 0..prefix_length {
-            match common::read_char(&mut reader) {
+            match io::read_char(&mut reader) {
                 Err(_) => break,
                 Ok(cur_char) => {
                     if cur_char == escape_symbol {

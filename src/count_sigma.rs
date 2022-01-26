@@ -1,7 +1,7 @@
 extern crate env_logger;
 #[macro_use] extern crate clap;
 
-#[allow(dead_code)] mod common;
+#[allow(dead_code)] mod io;
 
 extern crate log;
 use log::info;
@@ -47,7 +47,7 @@ fn main() {
     use std::time::Instant;
     let now = Instant::now();
     info!("read text");
-    let text = common::file2byte_vector(&text_filename, prefix_length);
+    let text = io::file2byte_vector(&text_filename, prefix_length);
 
     info!("compute sigma");
     let sigma = count_sigma(&text);

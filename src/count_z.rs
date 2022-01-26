@@ -4,9 +4,8 @@ extern crate num;
 use segment_tree::SegmentPoint;
 use segment_tree::ops::Min;
 
-#[allow(dead_code)] mod datastructures;
-#[allow(dead_code)] mod common;
-mod test;
+#[allow(dead_code)] mod core;
+#[allow(dead_code)] mod io;
 
 extern crate cdivsufsort;
 extern crate env_logger;
@@ -47,14 +46,14 @@ fn compute_lz77(text : &[u8], lcprmq: &SegmentPoint<u32, segment_tree::ops::Min>
     while i < text.len() { //@ last character is a dummy character -> do not encode
         let sa_position = isa[i] as usize;
 
-        let prev_lcp = if psv[sa_position] == datastructures::INVALID_VALUE { 0 } else {
+        let prev_lcp = if psv[sa_position] == core::INVALID_VALUE { 0 } else {
             let psv_sa_position = psv[sa_position] as usize;
             debug_assert_gt!(sa_position, psv_sa_position);
             let ret = lcprmq.query(psv_sa_position+1, sa_position+1);
             debug_assert_eq!(ret, (psv_sa_position+1..sa_position+1).into_iter().map(|x| { lcp[x] }).min().unwrap());
             ret
         };
-        let next_lcp = if nsv[sa_position] == datastructures::INVALID_VALUE { 0 } else {
+        let next_lcp = if nsv[sa_position] == core::INVALID_VALUE { 0 } else {
             let nsv_sa_position = nsv[sa_position] as usize;
             debug_assert_lt!(sa_position, nsv_sa_position);
             let ret = lcprmq.query(sa_position+1, nsv_sa_position+1);
@@ -81,7 +80,7 @@ pub const MAX_TEST_ITER : usize = 4096;
 
 #[test]
 fn test_compute_lz77() {
-    for text in test::StringTestFactory::new(0..MAX_TEST_ITER as usize, 1) {
+    for text in core::RandomStringFactory::new(0..MAX_TEST_ITER as usize, 1) {
         // text.push(0u8);
         let n = text.len();
         let sa = { 
@@ -90,13 +89,13 @@ fn test_compute_lz77() {
             sa
         };
 
-        let isa = datastructures::inverse_permutation(&sa.as_slice());
-        let psv = datastructures::compute_psv(&sa.as_slice());
-        let nsv = datastructures::compute_nsv(&sa.as_slice());
+        let isa = core::inverse_permutation(&sa.as_slice());
+        let psv = core::compute_psv(&sa.as_slice());
+        let nsv = core::compute_nsv(&sa.as_slice());
         let lcp = {
-            let phi = datastructures::compute_phi(&sa.as_slice());
-            let plcp = datastructures::compute_plcp(&text.as_slice(), &phi.as_slice());
-            datastructures::compute_lcp(&plcp.as_slice(), &sa.as_slice())
+            let phi = core::compute_phi(&sa.as_slice());
+            let plcp = core::compute_plcp(&text.as_slice(), &phi.as_slice());
+            core::compute_lcp(&plcp.as_slice(), &sa.as_slice())
         };
         let lcprmq = SegmentPoint::build(lcp.clone(), Min);
         let factors = compute_lz77(&text, &lcprmq, &sa, &isa, &lcp, &nsv, &psv);
@@ -127,9 +126,9 @@ fn main() {
     info!("Build DS");
     let mut now = Instant::now();
 
-    let text = common::file2byte_vector(&text_filename, prefix_length);
+    let text = io::file2byte_vector(&text_filename, prefix_length);
     // let text = {
-    //     let mut text = common::file2byte_vector(&text_filename, prefix_length);
+    //     let mut text = io::file2byte_vector(&text_filename, prefix_length);
     //     text.push(0u8);
     //     text
     // };
@@ -144,13 +143,13 @@ fn main() {
         debug!("sa : {:?}", sa);
     }
 
-    let isa = datastructures::inverse_permutation(&sa.as_slice());
-    let psv = datastructures::compute_psv(&sa.as_slice());
-    let nsv = datastructures::compute_nsv(&sa.as_slice());
+    let isa = core::inverse_permutation(&sa.as_slice());
+    let psv = core::compute_psv(&sa.as_slice());
+    let nsv = core::compute_nsv(&sa.as_slice());
     let lcp = {
-        let phi = datastructures::compute_phi(&sa.as_slice());
-        let plcp = datastructures::compute_plcp(&text.as_slice(), &phi.as_slice());
-        datastructures::compute_lcp(&plcp.as_slice(), &sa.as_slice())
+        let phi = core::compute_phi(&sa.as_slice());
+        let plcp = core::compute_plcp(&text.as_slice(), &phi.as_slice());
+        core::compute_lcp(&plcp.as_slice(), &sa.as_slice())
     };
     let lcprmq = SegmentPoint::build(lcp.clone(), Min);
 

@@ -3,10 +3,11 @@ extern crate env_logger;
 #[macro_use] extern crate clap;
 #[macro_use] extern crate more_asserts;
 
-#[allow(dead_code)] mod common;
-#[allow(dead_code)] mod datastructures;
+#[allow(dead_code)] mod io;
+#[allow(dead_code)] mod core;
 
-#[macro_use] extern crate approx;
+#[macro_use] 
+extern crate approx;
 
 
 extern crate log;
@@ -42,9 +43,9 @@ fn kth_order_entropy(text : &[u8], k : usize) -> f64 {
         sa
     };
     let lcp = {
-        let phi = datastructures::compute_phi(&sa.as_slice());
-        let plcp = datastructures::compute_plcp(&text, &phi.as_slice());
-        datastructures::compute_lcp(&plcp.as_slice(), &sa.as_slice())
+        let phi = core::compute_phi(&sa.as_slice());
+        let plcp = core::compute_plcp(&text, &phi.as_slice());
+        core::compute_lcp(&plcp.as_slice(), &sa.as_slice())
     };
     
     let compute_context = |start : usize, length : usize| -> f64 {
@@ -145,7 +146,7 @@ fn main() {
     info!("read text");
 
     let text = {
-        let mut text =common::file_or_stdin2byte_vector(&matches.value_of("input"), prefix_length);
+        let mut text = io::file_or_stdin2byte_vector(&matches.value_of("input"), prefix_length);
         text.push(0u8);
         text
     };

@@ -3,8 +3,7 @@ extern crate env_logger;
 #[macro_use] extern crate clap;
 #[macro_use] extern crate more_asserts;
 
-#[allow(dead_code)] mod common;
-#[allow(dead_code)] mod datastructures;
+#[allow(dead_code)] mod io;
 
 use std::collections::HashMap;
 
@@ -131,7 +130,7 @@ fn main() {
 
     info!("read text");
     let text = {
-        let mut text = common::file_or_stdin2byte_vector(&matches.value_of("input"), prefix_length);
+        let mut text = io::file_or_stdin2byte_vector(&matches.value_of("input"), prefix_length);
         text.push(0u8);
         text
     };

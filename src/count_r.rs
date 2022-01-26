@@ -7,10 +7,9 @@ extern crate env_logger;
 extern crate log;
 use log::{info,debug};
 
-#[allow(dead_code)] mod test;
-#[allow(dead_code)] mod datastructures;
+#[allow(dead_code)] mod core;
+#[allow(dead_code)] mod io;
 #[allow(dead_code)] mod fibonacci;
-#[allow(dead_code)] mod common;
 
 fn compute_bwt(text: &Vec<u8>) -> Vec<u8> {
     let n = text.len();
@@ -36,7 +35,7 @@ fn test_compute_bwt() {
         //@ only for uneven (counting starts at one) Fibonacci words, we have the property that the BWT has exactly two runs. See https://dx.doi.org/10.1007/978-3-319-23660-5_12
         let text = fibonacci::fibonacci(2*i+1); 
         let bwt = compute_bwt(&text);
-        let runs = common::number_of_runs(&mut bwt.as_slice());
+        let runs = core::number_of_runs(&mut bwt.as_slice());
         assert_eq!(runs, 2);
     }
 }
@@ -51,7 +50,7 @@ fn compute_bwt_matrix_linear(input: &[u8]) -> Vec<u8> {
     let mut sa = vec![0; n];
     assert!(!text[..text.len()-1].into_iter().any(|&x| x == 0));
     cdivsufsort::sort_in_place(&text, sa.as_mut_slice());
-    let isa = datastructures::inverse_permutation(&sa);
+    let isa = core::inverse_permutation(&sa);
     let smallest_suffix = isa.iter().position(|&x| x == 0).unwrap();
     let mut newtext = Vec::new();
     newtext.reserve(n);
@@ -94,7 +93,7 @@ fn compute_bwt_matrix<T : std::cmp::Ord + Copy>(text: &[T]) -> Vec<T> {
 pub const MAX_TEST_ITER : usize = 4096;
 #[test]
 fn test_bwt_matrix() {
-    for text in test::StringTestFactory::new(0..MAX_TEST_ITER as usize, 1) {
+    for text in core::RandomStringFactory::new(0..MAX_TEST_ITER as usize, 1) {
         if text.len() < 2 { continue; }
         let naive = compute_bwt_matrix(&text[0..text.len()-1]);
         let clever = compute_bwt_matrix_linear(&text[0..text.len()-1]);
@@ -130,9 +129,9 @@ fn main() {
 
     info!("read text");
     let text = if no_dollar {
-        common::file_or_stdin2byte_vector(&matches.value_of("input"), prefix_length)
+        io::file_or_stdin2byte_vector(&matches.value_of("input"), prefix_length)
     } else {
-        let mut text = common::file_or_stdin2byte_vector(&matches.value_of("input"), prefix_length);
+        let mut text = io::file_or_stdin2byte_vector(&matches.value_of("input"), prefix_length);
         text.push(0u8);
         text
     };
@@ -142,7 +141,7 @@ fn main() {
         true => compute_bwt_matrix(&text),
         false => compute_bwt(&text) 
     };
-    let r = common::number_of_runs(&mut bwt.as_slice());
+    let r = core::number_of_runs(&mut bwt.as_slice());
     println!("RESULT algo=bwt time_ms={} length={} bwt_runs={} file={} no_dollar={} use_matrix={}", now.elapsed().as_millis(), bwt.len(), r, matches.value_of("input").unwrap_or("stdin"), no_dollar, use_matrix);
 
 }

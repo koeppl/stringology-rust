@@ -77,25 +77,3 @@ pub fn read_char<R : std::io::Read>(reader : &mut R) -> std::io::Result<u8> {
 }
 
 
-/// counts the number of runs in an array `arr`
-pub fn number_of_runs<R : std::io::Read>(reader : &mut R) -> usize {
-    match read_char(reader) {
-        Err(_) => return 0,
-        Ok(first_char) => {
-            let mut run_counter = 1; //@ counts the number of character runs
-            let mut prev_char = first_char; //@ the current character of the chracter run
-            loop {
-                match read_char(reader) {
-                    Err(_) => break,
-                    Ok(next_char) => {
-                        if next_char != prev_char {
-                            prev_char = next_char;
-                            run_counter += 1;
-                        }
-                    }
-                }
-            }
-            run_counter
-        }
-    }
-}

@@ -1,9 +1,7 @@
 #[macro_use] extern crate more_asserts;
-extern crate num;
 
-#[allow(dead_code)] mod datastructures;
-#[allow(dead_code)] mod common;
-mod test;
+#[allow(dead_code)] mod core;
+#[allow(dead_code)] mod io;
 
 extern crate cdivsufsort;
 extern crate env_logger;
@@ -11,83 +9,6 @@ extern crate env_logger;
 
 extern crate log;
 use log::{debug, log_enabled, info, Level};
-
-pub const MAX_TEST_ITER : usize = 4096;
-
-/// Duval's algorithm
-/// returns a list of ending positions of the computed Lyndon factors.
-/// Duval, Jean-Pierre (1983), "Factorizing words over an ordered alphabet", Journal of Algorithms,
-/// 4 (4): 363–381, doi:10.1016/0196-6774(83)90017-2.
-fn duval(text: &[u8]) -> Vec<usize> {
-    let mut ending_positions = Vec::new();
-    let mut k = 0;
-    let n = text.len();
-    while k < n {
-        let mut i = k;
-        let mut j = k + 1;
-        while j != n && text[i] <= text[j] {
-            if text[i] < text[j] {
-                i = k;
-            }
-            if text[i] == text[j] {
-                i += 1;
-            }
-            j += 1;
-        }
-        loop {
-            assert_lt!(i,j);
-            k += j-i;
-            ending_positions.push(k-1 as usize);
-            if k >= i { break }
-        }
-    }
-    return ending_positions;
-}
-
-
-#[test]
-fn test_duval() {
-    for text in test::StringTestFactory::new(0..MAX_TEST_ITER as usize, 1) {
-       
-        let factors = duval(&text);
-
-        let n = text.len();
-        let sa = { 
-            let mut sa = vec![0; n];
-            assert!(!text[..text.len()-1].into_iter().any(|&x| x == 0));
-            cdivsufsort::sort_in_place(&text, sa.as_mut_slice());
-            sa
-        };
-        let isa = datastructures::inverse_permutation(&sa.as_slice());
-        if log_enabled!(Level::Debug) {
-            debug!("Lyndon factorization : {:?}", factors);
-        }
-        assert_eq!(factors, isa_lyndon_factorization(&isa));
-    }
-}
-
-
-/// Lyndon factorization via the inverse suffix array
-#[allow(dead_code)]
-fn isa_lyndon_factorization(isa : &[i32]) -> Vec<usize> {
-    let mut ending_positions = Vec::new();
-    let mut k = 0;
-    let mut current_val = isa[k];
-    let n = isa.len();
-    k += 1;
-    while k < n {
-        if isa[k] < current_val {
-            ending_positions.push(k-1 as usize);
-            current_val = isa[k];
-        }
-        k += 1;
-    }
-    ending_positions.push(n-1);
-    return ending_positions;
-}
-
-
-
 
 fn main() {
 	let matches = clap_app!(myapp =>
@@ -110,11 +31,11 @@ fn main() {
 
     info!("read text");
 
-    let text = common::file2byte_vector(&text_filename, prefix_length);
+    let text = io::file2byte_vector(&text_filename, prefix_length);
 
     let now = Instant::now();
 
-    let factors = duval(&text);
+    let factors = core::duval(&text);
 
     if log_enabled!(Level::Debug) {
         debug!("Lyndon factorization : {:?}", factors);
@@ -130,7 +51,7 @@ fn main() {
             cdivsufsort::sort_in_place(&text, sa.as_mut_slice());
             sa
         };
-        let isa = datastructures::inverse_permutation(&sa.as_slice());
-        debug_assert_eq!(factors, isa_lyndon_factorization(&isa));
+        let isa = core::inverse_permutation(&sa.as_slice());
+        debug_assert_eq!(factors, core::isa_lyndon_factorization(&isa));
     }
 }

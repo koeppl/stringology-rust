@@ -1,7 +1,16 @@
-#[allow(dead_code)] mod common;
+#[allow(dead_code)] mod io;
+#[allow(dead_code)] mod core;
 #[macro_use] extern crate more_asserts;
 
 
+/**
+ * the border array B of text[0..n) of length n+1
+ * It uses a dummy 0 value at the beginning (often -1 in the literature)
+ * to speed up computation by avoiding an additional if instruction.
+ * B[i] stores the longest prefix of text that is a suffix of text[1..i).
+ * Hence, B[0] and B[1] are dummy values having to meaning.
+ *
+ */
 fn border_array<C : Eq>(text: &[C]) -> Vec<usize> {
     let n = text.len();
     let mut border = Vec::new();
@@ -20,12 +29,35 @@ fn border_array<C : Eq>(text: &[C]) -> Vec<usize> {
     border
 }
 
-/// smallest period can be obtained by the last entry of the border array
+#[test]
+fn test_border_array() {
+    const MAX_TEST_ITER : usize = 4096;
+    // use crate::test;
+    for text in core::RandomStringFactory::new(0..MAX_TEST_ITER as usize, 1) {
+       let border = border_array(&text);
+       assert_eq!(border[0],0);
+       assert_eq!(border[1],0);
+       for i in 2..text.len() {
+          for b in 0..border[i] {
+             assert_eq!(text[b], text[i-border[i]+b]);
+          }
+       }
+    }
+}
+
+
+
+// test cases: aaaaaaa -> 012345 ...
+// ababab -> 0022345...
+
+/// the smallest period of a string is given by the  last entry of its border array
 fn smallest_period(border_array : &[usize]) -> usize {
     let n = border_array.len()-1;
     n - border_array[n]
 }
 
+/// a string is primitive if it is not the x-times concatenation of a string, for x being an
+/// integer >= 2
 fn is_primitive<C : Eq>(text: &[C]) -> bool {
     let border = border_array(text);
     let period = smallest_period(&border);
@@ -35,36 +67,9 @@ fn is_primitive<C : Eq>(text: &[C]) -> bool {
     (text.len() % smallest_period(&border)) != 0
 }
 
-//@TODO: needs to be included!
-fn duval<C : Ord>(text: &[C]) -> Vec<usize> {
-    let mut ending_positions = Vec::new();
-    let mut k = 0;
-    let n = text.len();
-    while k < n {
-        let mut i = k;
-        let mut j = k + 1;
-        while j != n && text[i] <= text[j] {
-            if text[i] < text[j] {
-                i = k;
-            }
-            if text[i] == text[j] {
-                i += 1;
-            }
-            j += 1;
-        }
-        loop {
-            assert_lt!(i,j);
-            k += j-i;
-            ending_positions.push(k-1 as usize);
-            if k >= i { break }
-        }
-    }
-    return ending_positions;
-}
-
 fn bbwt<C: Ord + Clone + Copy>(text: &[C]) -> Vec<C> {
     let n = text.len();
-    let mut factors = duval(&text);
+    let factors = core::duval(&text);
     // factors.push(n-1);
 	// println!("duval factors {:?}", factors);
 
@@ -174,22 +179,6 @@ fn compute_bwt_matrix<T : std::cmp::Ord + Copy>(text: &[T]) -> Vec<T> {
     bwt
 }
 
-fn zero_order_entropy<'a, I: Iterator<Item = &'a u8>>(text_iter : I) -> f64 {
-    let mut char_counters : Vec<usize> = vec![0; std::u8::MAX as usize + 1]; 
-    let mut total_count = 0;
-    for c in text_iter {
-        let index : usize = (*c).into();
-        char_counters[index] += 1;
-        total_count += 1;
-    }
-    let mut sum = 0 as f64;
-    for count in char_counters {
-        if count > 0 {
-            sum += (count as f64) * ((total_count as f64 / count as f64).log2());
-        }
-    }
-    sum / (total_count as f64)
-}
 
 fn second_criteria(newtext: &[u8], oldtext: &[u8]) -> bool {
     // return zero_order_entropy(newtext.into_iter()) < zero_order_entropy(oldtext.into_iter());
@@ -212,8 +201,8 @@ fn main() {
     //     text.push(1u8);
     //     let bwt = compute_bwt_matrix(&text);
     //     let bbwt = bbwt(&text);
-    //     let bwt_runs = common::number_of_runs(&mut bwt.as_slice());
-    //     let bbwt_runs = common::number_of_runs(&mut bbwt.as_slice());
+    //     let bwt_runs = io::number_of_runs(&mut bwt.as_slice());
+    //     let bbwt_runs = io::number_of_runs(&mut bbwt.as_slice());
     //     // println!("text={} bwt_runs={} bbwt_runs={}", str::from_utf8(&text.slice()).unwrap(), bwt_runs, bbwt_runs);
     //     println!("bwt_runs={} bbwt_runs={}", bwt_runs, bbwt_runs);
     // }
@@ -248,8 +237,8 @@ fn main() {
             // let bwt = bwt_from_sa(&text.as_bytes(), &sa);
             let bwt = compute_bwt_matrix(&text);
             let bbwt = bbwt(&text);
-            let bwt_runs = common::number_of_runs(&mut bwt.as_slice());
-            let bbwt_runs = common::number_of_runs(&mut bbwt.as_slice());
+            let bwt_runs = core::number_of_runs(&mut bwt.as_slice());
+            let bbwt_runs = core::number_of_runs(&mut bbwt.as_slice());
             score_counter += bbwt_runs as i64 - bwt_runs as i64;
             if bwt_runs < bbwt_runs { bwt_win_counter += 1; } else if bwt_runs > bbwt_runs { bbwt_win_counter += 1 } else { tie_win_counter += 1 };
 
@@ -269,8 +258,16 @@ fn main() {
         // println!("text {:?}", text);
         // println!("bwt  {:?}", str::from_utf8(&bwt).unwrap());
         // println!("bbwt {:?}", str::from_utf8(&bbwt).unwrap());
-        // println!("{:?} {} {}", bwt, common::number_of_runs(&mut bwt.as_slice()), common::number_of_runs(&mut bbwt.as_slice()));
+        // println!("{:?} {} {}", bwt, io::number_of_runs(&mut bwt.as_slice()), io::number_of_runs(&mut bbwt.as_slice()));
         // if (number).leading_zeros() as i32 - (number+1).leading_zeros() as i32  > 0  {
         // }
     }
 }
+
+
+// TODO: compute the Lyndon factor in Duval of (TT) that spans over the border between T and T,
+// which has the length n (or it is exactly T). This is the Lyndon conjugate L of T
+// Then the BWT and the BBWT of L are identical
+// In particular, the matrix-based BWT and the SA-based BWT of L should be the same when removing
+// the $
+// TODO: https://www.ics.uci.edu/~eppstein/PADS/Lyndon.py

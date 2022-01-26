@@ -1,9 +1,8 @@
 #[macro_use] extern crate more_asserts;
 extern crate num;
 
-#[allow(dead_code)] mod datastructures;
-#[allow(dead_code)] mod common;
-mod test;
+#[allow(dead_code)] mod core;
+#[allow(dead_code)] mod io;
 
 extern crate cdivsufsort;
 extern crate env_logger;
@@ -58,7 +57,7 @@ fn main() {
     info!("Build DS");
     let mut now = Instant::now();
 
-    let text = common::file2byte_vector(&text_filename, prefix_length);
+    let text = io::file2byte_vector(&text_filename, prefix_length);
 
     let sa = { 
         let mut sa = vec![0; text.len()];
@@ -69,8 +68,8 @@ fn main() {
         debug!(" T : {:?}", text);
         debug!("sa : {:?}", sa);
     }
-    let phi = datastructures::compute_phi(&sa.as_slice());
-    let plcp = datastructures::compute_plcp(&text.as_slice(), &phi.as_slice());
+    let phi = core::compute_phi(&sa.as_slice());
+    let plcp = core::compute_plcp(&text.as_slice(), &phi.as_slice());
 
     info!("time: {}", now.elapsed().as_millis()); 
 

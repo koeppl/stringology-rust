@@ -1,8 +1,7 @@
 extern crate env_logger;
 #[macro_use] extern crate clap;
 
-#[allow(dead_code)] mod common;
-#[allow(dead_code)] mod datastructures;
+#[allow(dead_code)] mod io;
 
 extern crate log;
 use log::info;
@@ -19,7 +18,7 @@ fn main() {
 
     let prefix_length = matches.value_of("prefix").unwrap_or("0").parse::<usize>().unwrap();
 
-    let mut writer = common::stream_or_stdout(matches.value_of("output"));
+    let mut writer = io::stream_or_stdout(matches.value_of("output"));
 
 
     env_logger::init();
@@ -27,7 +26,7 @@ fn main() {
 
     info!("read text");
 
-    let mut text = common::file_or_stdin2byte_vector(&matches.value_of("input"), prefix_length);
+    let mut text = io::file_or_stdin2byte_vector(&matches.value_of("input"), prefix_length);
 
     info!("compute reverse");
     text.reverse();
