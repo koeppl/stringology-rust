@@ -56,6 +56,98 @@ fn smallest_period(border_array : &[usize]) -> usize {
     n - border_array[n]
 }
 
+
+#[test]
+fn test_period() {
+    const MAX_TEST_ITER : usize = 4096;
+    // use crate::test;
+    for text in core::RandomStringFactory::new(0..MAX_TEST_ITER as usize, 1) {
+       let border = border_array(&text);
+       let period = smallest_period(&border);
+       for i in 0..text.len()-period {
+          assert_eq!(text[i], text[i+period]);
+       }
+    }
+}
+
+
+fn lyndon_conjugate<C : Ord + Copy + Clone>(text: &[C]) -> usize {
+   let n = text.len();
+   let mut doubletext = Vec::new();
+   doubletext.extend_from_slice(text);
+   doubletext.extend_from_slice(text); //@ TODO: instead of doubling the text, we could write a wrapper around the text
+
+   let mut factors = core::duval(&doubletext);
+   factors.push(2*n);
+   if factors[0]+1 == n { return 0; } //@ if the first factor ends at position n, we are done
+   for x in 0..factors.len()-1 {
+      if factors[x+1]+1 >= n {
+         return factors[x]+1;
+      }
+   }
+   assert!(false); //should never happen
+   return 0;
+}
+
+#[test]
+fn test_lyndon_conjugate() {
+    const MAX_TEST_ITER : usize = 4096;
+    // use crate::test;
+    for text in core::RandomStringFactory::new(0..MAX_TEST_ITER as usize, 1) {
+       let n = text.len();
+       let lconjugate = lyndon_conjugate(&text);
+       assert_lt!(lconjugate, n);
+       for conj in 0..text.len() {
+          if conj == lconjugate { continue;}
+          for len in 0..text.len() {
+             let lcharpos = (lconjugate + len) % n;
+             let ccharpos = (conj + len) % n;
+             let lchar = text[lcharpos];
+             let cchar = text[ccharpos];
+             if lchar < cchar { break; }
+             assert_eq!(lchar, cchar); //@ otherwise, lconjugate is not the lex. smallest conjugate!
+          }
+       }
+    }
+}
+
+/// computes the BWT based on the matrix, i.e., the sorting of the cyclic conjugates of the 
+/// input text by first finding its Lyndon conjugate, appending a 0 byte, 
+/// then computing the BWT of this conjugate
+/// via the suffix array, and removing the 0 byte at the end.
+fn bwt_by_matrix(text: &[u8]) -> Vec<u8> {
+   let n = text.len();
+    assert_gt!(n, 0);
+
+    let conjugate_start = lyndon_conjugate(&text);
+    let mut newtext = Vec::new();
+    newtext.reserve(n);
+    for i in conjugate_start..n {
+        newtext.push(text[i]);
+    }
+    for i in 0..conjugate_start {
+        newtext.push(text[i]);
+    }
+    newtext.push(0u8);
+    let mut bwt = core::bwt_from_text_by_sa(&newtext);
+    bwt.remove(bwt.iter().position(|&x| x == 0).unwrap());
+    bwt
+}
+
+pub const MAX_TEST_ITER : usize = 4096;
+#[test]
+fn test_bwt_by_matrix() {
+    for text in core::RandomStringFactory::new(0..MAX_TEST_ITER as usize, 1) {
+        if text.len() < 2 { continue; }
+        let naive = compute_bwt_matrix(&text[0..text.len()-1]);
+        let clever = bwt_by_matrix(&text[0..text.len()-1]);
+        if naive != clever {
+            bwt_by_matrix(&text[0..text.len()-1]);
+        }
+        assert_eq!(naive, clever);
+    }
+}
+
 /// a string is primitive if it is not the x-times concatenation of a string, for x being an
 /// integer >= 2
 fn is_primitive<C : Eq>(text: &[C]) -> bool {
@@ -178,6 +270,55 @@ fn compute_bwt_matrix<T : std::cmp::Ord + Copy>(text: &[T]) -> Vec<T> {
     }
     bwt
 }
+pub struct LyndonWordFactory {
+   m_length : usize,
+   m_alphabet_size : usize,
+   m_stack : Vec<u8> 
+}
+
+impl LyndonWordFactory {
+    #[allow(dead_code)]
+    pub fn new(length : usize, alphabet_size : usize) -> LyndonWordFactory {
+        LyndonWordFactory { m_length : length, m_alphabet_size : alphabet_size, m_stack : Vec::new() }
+    }
+}
+
+impl Iterator for LyndonWordFactory {
+    type Item = Vec<u8>;
+
+    /// Copied from David Eppstein @ https://www.ics.uci.edu/~eppstein/PADS/Lyndon.py
+    /// Generate nonempty Lyndon words of length <= n over an s-symbol alphabet.
+    /// The words are generated in lexicographic order, using an algorithm from
+    /// J.-P. Duval, Theor. Comput. Sci. 1988, doi:10.1016/0304-3975(88)90113-2.
+    /// As shown by Berstel and Pocchiola, it takes constant average time
+    /// per generated word.
+    fn next(&mut self) -> Option<Vec<u8>> { 
+       let stack = &mut self.m_stack;
+       if stack.is_empty() {
+          stack.push(0); //@ set up for first increment
+          return Some(stack.clone());
+       }
+
+       while !stack.is_empty() {
+          let current_length = stack.len();
+          while stack.len() < self.m_length {              //@ repeat word to fill exactly n syms
+             stack.push(stack[stack.len()-current_length]);
+          }
+
+          //@ delete trailing z's
+          while !stack.is_empty() && *stack.last().unwrap() as usize == self.m_alphabet_size - 1 { 
+             stack.pop();
+          }
+          if stack.is_empty() { return None; }
+          else {
+             *stack.last_mut().unwrap() += 1;                      //@ increment the last non-z symbol
+             return Some(stack.clone());
+          }
+       }
+       return None;
+    }
+}
+
 
 
 fn second_criteria(newtext: &[u8], oldtext: &[u8]) -> bool {
@@ -186,6 +327,10 @@ fn second_criteria(newtext: &[u8], oldtext: &[u8]) -> bool {
 }
 
 fn main() {
+    for text in LyndonWordFactory::new(8, 3) {
+       println!("fact = {:?}", text);
+    }
+    return;
 
     // for k in 2..20 {
     //     let mut text = Vec::new();

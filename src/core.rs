@@ -1,5 +1,27 @@
 use num::cast::AsPrimitive;
 use crate::io;
+extern crate cdivsufsort;
+extern crate log;
+use log::debug;
+
+pub fn bwt_from_text_by_sa(text: &Vec<u8>) -> Vec<u8> {
+    let n = text.len();
+    let mut sa = vec![0; n];
+    assert!(!text[..text.len()-1].into_iter().any(|&x| x == 0));
+    cdivsufsort::sort_in_place(&text, sa.as_mut_slice());
+    let mut bwt = vec![text[0]; n];
+    // let mut rsa = vec![0; n];
+    for i in 0..n {
+        bwt[i] = text[(n + (sa[i] as usize)-1)  % n];
+        // rsa[i] = (n + (sa[i] as usize)-1)  % n;
+    }
+    debug!("text: {:?}", text);
+    debug!("bwt: {:?}", bwt);
+    debug!("sa: {:?}", sa);
+    // println!("rsa: {:?}", rsa);
+    bwt
+}
+
 
 /// compute the location of the most significant bit 
 pub fn bit_size(i : usize) -> u8 {

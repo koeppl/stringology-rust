@@ -3,6 +3,7 @@
 #[allow(dead_code)] mod io;
 #[allow(dead_code)] mod core;
 
+mod fibonacci;
 extern crate log;
 use log::{debug};
 
@@ -25,5 +26,16 @@ fn test_duval() {
             debug!("Lyndon factorization : {:?}", factors);
         }
         assert_eq!(factors, core::isa_lyndon_factorization(&isa));
+    }
+}
+
+#[test]
+fn test_bwt_from_text_by_sa() {
+    for i in 1..8 {
+        //@ only for uneven (counting starts at one) Fibonacci words, we have the property that the BWT has exactly two runs. See https://dx.doi.org/10.1007/978-3-319-23660-5_12
+        let text = fibonacci::fibonacci(2*i+1); 
+        let bwt = core::bwt_from_text_by_sa(&text);
+        let runs = core::number_of_runs(&mut bwt.as_slice());
+        assert_eq!(runs, 2);
     }
 }
