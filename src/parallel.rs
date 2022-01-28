@@ -319,6 +319,64 @@ impl Iterator for LyndonWordFactory {
     }
 }
 
+pub struct BinaryStringFactory {
+   m_length : u8,
+   m_rank : u64,
+}
+
+impl BinaryStringFactory {
+    #[allow(dead_code)]
+    pub fn new(length : u8) -> BinaryStringFactory {
+        BinaryStringFactory { m_length : length, m_rank : 0 }
+    }
+}
+
+impl Iterator for BinaryStringFactory {
+    type Item = Vec<u8>;
+
+    fn next(&mut self) -> Option<Vec<u8>> { 
+       if self.m_rank == u64::MAX { return None; }
+       let mut text = Vec::new();
+       text.reserve(self.m_length as usize);
+       for i in 0..self.m_length {
+          let bit = self.m_rank & (1<<i);
+          text.push( if bit == 0 { '0' as u8 } else { '1' as u8 });
+       }
+       self.m_rank += 1;
+       Some(text)
+    }
+}
+
+pub struct ConjugateIterator<'a, C : Eq + Copy + Clone> {
+   m_text : &'a [C],
+   m_pos : usize,
+}
+
+impl<'a, C : Eq + Copy + Clone> ConjugateIterator<'a, C> {
+    #[allow(dead_code)]
+    pub fn new(text: &'a [C]) -> ConjugateIterator<'a,C> {
+        ConjugateIterator::<'a, C> { m_text : text, m_pos: 0 }
+    }
+}
+
+impl<'a, C : Eq + Copy + Clone> Iterator for ConjugateIterator<'a, C> {
+    type Item = Vec<C>;
+
+    fn next(&mut self) -> Option<Vec<C>> { 
+       if self.m_pos == self.m_text.len() { return None; }
+
+       let mut ret = Vec::new();
+       ret.reserve_exact(self.m_text.len());
+       for i in self.m_pos..self.m_text.len() {
+          ret.push(self.m_text[i]);
+       }
+       for i in 0..self.m_pos {
+          ret.push(self.m_text[i]);
+       }
+       self.m_pos += 1;
+       Some(ret)
+    }
+}
 
 
 fn second_criteria(newtext: &[u8], oldtext: &[u8]) -> bool {
@@ -326,11 +384,70 @@ fn second_criteria(newtext: &[u8], oldtext: &[u8]) -> bool {
    return newtext.into_iter().filter(|&c| *c == '0' as u8).count() < oldtext.into_iter().filter(|&c| *c == '0' as u8).count();
 }
 
+fn binary_vector_to_str(text : &[u8]) -> String {
+   let mut output = String::new();
+   for c in text {
+      if *c == 0 { output.push('a'); } else { output.push('b'); }
+   }
+   output
+}
+
 fn main() {
-    for text in LyndonWordFactory::new(8, 3) {
-       println!("fact = {:?}", text);
+
+   const max_length : usize = 40;
+
+   let mut num_lyndon_words = [0; max_length];
+   let mut bwt_win_counter =[0;max_length]; 
+   let mut bbwt_win_counter =[0;max_length]; 
+   let mut tie_win_counter =[0;max_length]; 
+
+   // let mut score_counter = 0i64; // same, but stores the diff
+   // let mut best_bbwt_text : [Vec<u8>; max_length] = Default::default();
+   let mut best_bbwt_text = std::iter::repeat(vec![]).take(max_length).collect::<Vec<_>>();
+   let mut best_bbwt_bbwtrun = [0;max_length];
+   let mut best_bbwt_bwtrun = [0;max_length];
+
+
+   let mut total_counter = 0;
+
+    for text in LyndonWordFactory::new(max_length, 2) {
+       {
+          // println!("fact = {:?}", text);
+          let bwt = compute_bwt_matrix(&text);
+          let bwt_runs = core::number_of_runs(&mut bwt.as_slice());
+
+          assert_gt!(text.len(), 0);
+          let lindex = text.len()-1;
+          assert_lt!(lindex, max_length);
+          for conjugate in ConjugateIterator::new(&text) {
+             // println!("conj = {:?}", conjugate);
+             // assert_eq!(bwt, compute_bwt_matrix(&conjugate));  
+             let bbwt = bbwt(&conjugate);
+             let bbwt_runs = core::number_of_runs(&mut bbwt.as_slice());
+
+             if bwt_runs < bbwt_runs { bwt_win_counter[lindex] += 1; } else if bwt_runs > bbwt_runs { bbwt_win_counter[lindex] += 1 } else { tie_win_counter[lindex] += 1 };
+             if bbwt_runs < bwt_runs && 
+                (bwt_runs-bbwt_runs > (best_bbwt_bwtrun[lindex]-best_bbwt_bbwtrun[lindex]) ||
+                 (bwt_runs-bbwt_runs == (best_bbwt_bwtrun[lindex]-best_bbwt_bbwtrun[lindex]) && second_criteria(&conjugate, & best_bbwt_text[lindex].as_slice()))) {
+                   best_bbwt_bwtrun[lindex] = bwt_runs;
+                   best_bbwt_bbwtrun[lindex] = bbwt_runs;
+                   best_bbwt_text[lindex].clear();
+                   best_bbwt_text[lindex].extend_from_slice(&conjugate);
+             }
+
+          }
+          num_lyndon_words[lindex] += 1;
+          total_counter += 1;
+       }
+       if total_counter % 100 == 0 {
+          use std::str;
+          for length in 0..max_length {
+             println!("length={} lyndon_words={} bwt_wins={} bbwt_wins={} ties={}", length, num_lyndon_words[length], bwt_win_counter[length], bbwt_win_counter[length], tie_win_counter[length]);
+             // println!("length={} text={} bwt_runs={} bbwt_runs={}", length, str::from_utf8(&best_bbwt_text[length]).unwrap(), best_bbwt_bwtrun[length], best_bbwt_bbwtrun[length]);
+             println!("length={} text={} bwt_runs={} bbwt_runs={}", length, binary_vector_to_str(&best_bbwt_text[length]), best_bbwt_bwtrun[length], best_bbwt_bbwtrun[length]);
+          }
+       }
     }
-    return;
 
     // for k in 2..20 {
     //     let mut text = Vec::new();
@@ -353,60 +470,60 @@ fn main() {
     // }
 
 
-    for number_of_bits in 3..36 {
-        let mut bwt_win_counter =0u64; 
-        let mut bbwt_win_counter =0u64; 
-        let mut tie_win_counter =0u64; 
-        let mut score_counter = 0i64; // same, but stores the diff
-        let mut best_bbwt_text = Vec::new();
-        let mut best_bbwt_bbwtrun = 0;
-        let mut best_bbwt_bwtrun = 0;
-        let mut primitive_words = 0;
-        for number in 0..(1<<number_of_bits) {
-            let mut text = Vec::new();
-            text.reserve(number_of_bits);
-            for i in 0..number_of_bits {
-                let bit = number & (1<<i);
-                text.push( if bit == 0 { '0' as u8 } else { '1' as u8 });
-            }
-            // let formatnumber = 
-            // let text = format!(formatstring, number);
-
-            // println!("text={:?} border_array={:?} primitive?={}", text, border_array(&text), is_primitive(&text));
-
-            if is_primitive(&text) {
-                primitive_words += 1;
-            }
-
-            // let sa = suffixarray_naive(&text.as_bytes());
-            // let bwt = bwt_from_sa(&text.as_bytes(), &sa);
-            let bwt = compute_bwt_matrix(&text);
-            let bbwt = bbwt(&text);
-            let bwt_runs = core::number_of_runs(&mut bwt.as_slice());
-            let bbwt_runs = core::number_of_runs(&mut bbwt.as_slice());
-            score_counter += bbwt_runs as i64 - bwt_runs as i64;
-            if bwt_runs < bbwt_runs { bwt_win_counter += 1; } else if bwt_runs > bbwt_runs { bbwt_win_counter += 1 } else { tie_win_counter += 1 };
-
-            if bbwt_runs < bwt_runs && 
-                (bwt_runs-bbwt_runs > (best_bbwt_bwtrun-best_bbwt_bbwtrun) ||
-                 (bwt_runs-bbwt_runs == (best_bbwt_bwtrun-best_bbwt_bbwtrun) && second_criteria(&text, & best_bbwt_text.as_slice()))) {
-                    best_bbwt_bwtrun = bwt_runs;
-                    best_bbwt_bbwtrun = bbwt_runs;
-                    best_bbwt_text.clear();
-                    best_bbwt_text.extend_from_slice(&text);
-            }
-        }
-
-        use std::str;
-        println!("bits={} nonprimitive_words={} bwt_wins={} bbwt_wins={} ties={} score={}", number_of_bits, (1<<number_of_bits)-primitive_words, bwt_win_counter, bbwt_win_counter, tie_win_counter, score_counter);
-        println!("bits={} text={} bwt_runs={} bbwt_runs={}", number_of_bits, str::from_utf8(&best_bbwt_text).unwrap(), best_bbwt_bwtrun, best_bbwt_bbwtrun);
-        // println!("text {:?}", text);
-        // println!("bwt  {:?}", str::from_utf8(&bwt).unwrap());
-        // println!("bbwt {:?}", str::from_utf8(&bbwt).unwrap());
-        // println!("{:?} {} {}", bwt, io::number_of_runs(&mut bwt.as_slice()), io::number_of_runs(&mut bbwt.as_slice()));
-        // if (number).leading_zeros() as i32 - (number+1).leading_zeros() as i32  > 0  {
-        // }
-    }
+    // for number_of_bits in 3..36 {
+    //     let mut bwt_win_counter =0u64; 
+    //     let mut bbwt_win_counter =0u64; 
+    //     let mut tie_win_counter =0u64; 
+    //     let mut score_counter = 0i64; // same, but stores the diff
+    //     let mut best_bbwt_text = Vec::new();
+    //     let mut best_bbwt_bbwtrun = 0;
+    //     let mut best_bbwt_bwtrun = 0;
+    //     let mut primitive_words = 0;
+    //     for number in 0..(1<<number_of_bits) {
+    //         let mut text = Vec::new();
+    //         text.reserve(number_of_bits);
+    //         for i in 0..number_of_bits {
+    //             let bit = number & (1<<i);
+    //             text.push( if bit == 0 { '0' as u8 } else { '1' as u8 });
+    //         }
+    //         // let formatnumber = 
+    //         // let text = format!(formatstring, number);
+    //
+    //         // println!("text={:?} border_array={:?} primitive?={}", text, border_array(&text), is_primitive(&text));
+    //
+    //         if is_primitive(&text) {
+    //             primitive_words += 1;
+    //         }
+    //
+    //         // let sa = suffixarray_naive(&text.as_bytes());
+    //         // let bwt = bwt_from_sa(&text.as_bytes(), &sa);
+    //         let bwt = compute_bwt_matrix(&text);
+    //         let bbwt = bbwt(&text);
+    //         let bwt_runs = core::number_of_runs(&mut bwt.as_slice());
+    //         let bbwt_runs = core::number_of_runs(&mut bbwt.as_slice());
+    //         score_counter += bbwt_runs as i64 - bwt_runs as i64;
+    //         if bwt_runs < bbwt_runs { bwt_win_counter += 1; } else if bwt_runs > bbwt_runs { bbwt_win_counter += 1 } else { tie_win_counter += 1 };
+    //
+    //         if bbwt_runs < bwt_runs && 
+    //             (bwt_runs-bbwt_runs > (best_bbwt_bwtrun-best_bbwt_bbwtrun) ||
+    //              (bwt_runs-bbwt_runs == (best_bbwt_bwtrun-best_bbwt_bbwtrun) && second_criteria(&text, & best_bbwt_text.as_slice()))) {
+    //                 best_bbwt_bwtrun = bwt_runs;
+    //                 best_bbwt_bbwtrun = bbwt_runs;
+    //                 best_bbwt_text.clear();
+    //                 best_bbwt_text.extend_from_slice(&text);
+    //         }
+    //     }
+    //
+    //     use std::str;
+    //     println!("bits={} nonprimitive_words={} bwt_wins={} bbwt_wins={} ties={} score={}", number_of_bits, (1<<number_of_bits)-primitive_words, bwt_win_counter, bbwt_win_counter, tie_win_counter, score_counter);
+    //     println!("bits={} text={} bwt_runs={} bbwt_runs={}", number_of_bits, str::from_utf8(&best_bbwt_text).unwrap(), best_bbwt_bwtrun, best_bbwt_bbwtrun);
+    //     // println!("text {:?}", text);
+    //     // println!("bwt  {:?}", str::from_utf8(&bwt).unwrap());
+    //     // println!("bbwt {:?}", str::from_utf8(&bbwt).unwrap());
+    //     // println!("{:?} {} {}", bwt, io::number_of_runs(&mut bwt.as_slice()), io::number_of_runs(&mut bbwt.as_slice()));
+    //     // if (number).leading_zeros() as i32 - (number+1).leading_zeros() as i32  > 0  {
+    //     // }
+    // }
 }
 
 
