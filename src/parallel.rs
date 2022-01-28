@@ -1,6 +1,7 @@
 #[allow(dead_code)] mod io;
 #[allow(dead_code)] mod core;
 #[macro_use] extern crate more_asserts;
+use std::thread;
 
 
 /**
@@ -392,62 +393,168 @@ fn binary_vector_to_str(text : &[u8]) -> String {
    output
 }
 
-fn main() {
+use std::sync::{Arc, Mutex};
+use std::sync::RwLock;
 
+fn main() {
    const max_length : usize = 40;
 
-   let mut num_lyndon_words = [0; max_length];
-   let mut bwt_win_counter =[0;max_length]; 
-   let mut bbwt_win_counter =[0;max_length]; 
-   let mut tie_win_counter =[0;max_length]; 
+   // let counter = Arc::new(Mutex::new([0;max_length]));
+   // let countr2 = Arc::new(Mutex::new(Vec::new()));
+   // // let mut c = countr2.lock().unwrap();
+   // for _ in 0..max_length {
+   //    // countr2.lock().unwrap().push(Vec::<u8>::new());
+   //    countr2.lock().unwrap().push(Arc::new(Mutex::new(Vec::<u8>::new())));
+   // }
+   // let mut handles = vec![];
+   //
+   // for _ in 0..10 {
+   //    let counter = Arc::clone(&counter);
+   //    let handle = thread::spawn({
+   //       let clone = Arc::clone(&countr2);
+   //       move || {
+   //       let mut num = counter.lock().unwrap();
+   //       let c = clone.lock().unwrap();
+   //       let mut vec = c[3].lock().unwrap();
+   //
+   //       let bbwt = vec![0u8; 7];
+   //       vec.extend_from_slice(&bbwt);
+   //       num[5] += 1;
+   //        println!("fact = {}", num[5]);
+   //       }
+   //    });
+   //    handles.push(handle);
+   // }
+
+   // for handle in handles {
+   //    handle.join().unwrap();
+   // }
+
+
+
+
+   let num_lyndon_words_arc  = Arc::new(Mutex::new([0;max_length]));
+   let bwt_win_counter_arc   = Arc::new(Mutex::new([0;max_length])); 
+   let bbwt_win_counter_arc  = Arc::new(Mutex::new([0;max_length])); 
+   let tie_win_counter_arc   = Arc::new(Mutex::new([0;max_length])); 
+   let best_bbwt_bbwtrun_arc = Arc::new(RwLock::new([0;max_length]));
+   let best_bbwt_bwtrun_arc  = Arc::new(RwLock::new([0;max_length]));
+
+
+   let best_bbwt_text_arc = Arc::new(RwLock::new(Vec::new()));
+   for _ in 0..max_length {
+      best_bbwt_text_arc.write().unwrap().push(Arc::new(RwLock::new(Vec::<u8>::new())));
+   }
+   let mut handles = vec![];
 
    // let mut score_counter = 0i64; // same, but stores the diff
    // let mut best_bbwt_text : [Vec<u8>; max_length] = Default::default();
-   let mut best_bbwt_text = std::iter::repeat(vec![]).take(max_length).collect::<Vec<_>>();
-   let mut best_bbwt_bbwtrun = [0;max_length];
-   let mut best_bbwt_bwtrun = [0;max_length];
+   // let mut best_bbwt_text = std::iter::repeat(vec![]).take(max_length).collect::<Vec<_>>();
 
 
-   let mut total_counter = 0;
+   let total_counter_arc = Arc::new(Mutex::new(0 as usize));
 
-    for text in LyndonWordFactory::new(max_length, 2) {
-       {
-          // println!("fact = {:?}", text);
-          let bwt = compute_bwt_matrix(&text);
-          let bwt_runs = core::number_of_runs(&mut bwt.as_slice());
+   let iterator_arc = Arc::new(Mutex::new(LyndonWordFactory::new(max_length, 2)));
 
-          assert_gt!(text.len(), 0);
-          let lindex = text.len()-1;
-          assert_lt!(lindex, max_length);
-          for conjugate in ConjugateIterator::new(&text) {
-             // println!("conj = {:?}", conjugate);
-             // assert_eq!(bwt, compute_bwt_matrix(&conjugate));  
-             let bbwt = bbwt(&conjugate);
-             let bbwt_runs = core::number_of_runs(&mut bbwt.as_slice());
+   for _ in 0..2 {
+      let num_lyndon_words_arc  = Arc::clone(&num_lyndon_words_arc );
+      let bwt_win_counter_arc   = Arc::clone(&bwt_win_counter_arc   );
+      let bbwt_win_counter_arc  = Arc::clone(&bbwt_win_counter_arc  );
+      let tie_win_counter_arc   = Arc::clone(&tie_win_counter_arc   );
+      let best_bbwt_bbwtrun_arc = Arc::clone(&best_bbwt_bbwtrun_arc );
+      let best_bbwt_bwtrun_arc  = Arc::clone(&best_bbwt_bwtrun_arc  );
+      let best_bbwt_text_arc    = Arc::clone(&best_bbwt_text_arc   );
+      let iterator_arc = Arc::clone(&iterator_arc);
+      let total_counter_arc = Arc::clone(&total_counter_arc);
+      let handle = thread::spawn(move || {
+         loop {
+            match iterator_arc.lock().unwrap().next() {
+               None => break, 
+               Some(text) => {
+                  {
+                     // println!("fact = {:?}", text);
+                     let bwt = compute_bwt_matrix(&text);
+                     let bwt_runs = core::number_of_runs(&mut bwt.as_slice());
 
-             if bwt_runs < bbwt_runs { bwt_win_counter[lindex] += 1; } else if bwt_runs > bbwt_runs { bbwt_win_counter[lindex] += 1 } else { tie_win_counter[lindex] += 1 };
-             if bbwt_runs < bwt_runs && 
-                (bwt_runs-bbwt_runs > (best_bbwt_bwtrun[lindex]-best_bbwt_bbwtrun[lindex]) ||
-                 (bwt_runs-bbwt_runs == (best_bbwt_bwtrun[lindex]-best_bbwt_bbwtrun[lindex]) && second_criteria(&conjugate, & best_bbwt_text[lindex].as_slice()))) {
-                   best_bbwt_bwtrun[lindex] = bwt_runs;
-                   best_bbwt_bbwtrun[lindex] = bbwt_runs;
-                   best_bbwt_text[lindex].clear();
-                   best_bbwt_text[lindex].extend_from_slice(&conjugate);
-             }
+                     assert_gt!(text.len(), 0);
+                     let lindex = text.len()-1;
+                     assert_lt!(lindex, max_length);
+                     for conjugate in ConjugateIterator::new(&text) {
+                        // println!("conj = {:?}", conjugate);
+                        // assert_eq!(bwt, compute_bwt_matrix(&conjugate));  
+                        let bbwt = bbwt(&conjugate);
+                        let bbwt_runs = core::number_of_runs(&mut bbwt.as_slice());
 
-          }
-          num_lyndon_words[lindex] += 1;
-          total_counter += 1;
-       }
-       if total_counter % 100 == 0 {
-          use std::str;
-          for length in 0..max_length {
-             println!("length={} lyndon_words={} bwt_wins={} bbwt_wins={} ties={}", length, num_lyndon_words[length], bwt_win_counter[length], bbwt_win_counter[length], tie_win_counter[length]);
-             // println!("length={} text={} bwt_runs={} bbwt_runs={}", length, str::from_utf8(&best_bbwt_text[length]).unwrap(), best_bbwt_bwtrun[length], best_bbwt_bbwtrun[length]);
-             println!("length={} text={} bwt_runs={} bbwt_runs={}", length, binary_vector_to_str(&best_bbwt_text[length]), best_bbwt_bwtrun[length], best_bbwt_bbwtrun[length]);
-          }
-       }
-    }
+                        {
+                           let mut bwt_win_counter = bwt_win_counter_arc.lock().unwrap();
+                           let mut bbwt_win_counter = bbwt_win_counter_arc.lock().unwrap();
+                           let mut tie_win_counter = tie_win_counter_arc.lock().unwrap();
+
+                           if bwt_runs < bbwt_runs { bwt_win_counter[lindex] += 1; } else if bwt_runs > bbwt_runs { bbwt_win_counter[lindex] += 1 } else { tie_win_counter[lindex] += 1 };
+                        }
+
+                        if bbwt_runs < bwt_runs {
+                           let mut needs_change = false;
+
+                           {
+                              let best_bbwt_bwtrun = best_bbwt_bwtrun_arc.read().unwrap();
+                              let best_bbwt_bbwtrun = best_bbwt_bbwtrun_arc.read().unwrap();
+                              let best_bbwt_text = best_bbwt_text_arc.read().unwrap();
+                              let texthandle = best_bbwt_text[lindex].read().unwrap();
+
+                              if bwt_runs-bbwt_runs > (best_bbwt_bwtrun[lindex]-best_bbwt_bbwtrun[lindex]) ||
+                                 (bwt_runs-bbwt_runs == (best_bbwt_bwtrun[lindex]-best_bbwt_bbwtrun[lindex]) && second_criteria(&conjugate, & texthandle.as_slice())) {
+                                    needs_change = true;
+                              }
+                           }
+                           if needs_change  {
+                                 let mut best_bbwt_bwtrun = best_bbwt_bwtrun_arc.write().unwrap();
+                                 let mut best_bbwt_bbwtrun = best_bbwt_bbwtrun_arc.write().unwrap();
+                                 let best_bbwt_text = best_bbwt_text_arc.write().unwrap();
+                                 let mut texthandle = best_bbwt_text[lindex].write().unwrap();
+
+                                 // let mut best_bbwt_bbwtrun = best_bbwt_bbwtrun_arc.lock().unwrap();
+                                 best_bbwt_bwtrun[lindex] = bwt_runs;
+                                 best_bbwt_bbwtrun[lindex] = bbwt_runs;
+                                 texthandle.clear();
+                                 texthandle.extend_from_slice(&conjugate);
+                           }
+                        }
+
+                     }
+                     let mut num_lyndon_words = num_lyndon_words_arc.lock().unwrap();
+                     num_lyndon_words[lindex] += 1;
+
+                     let mut total_counter = total_counter_arc.lock().unwrap();
+                     *total_counter += 1;
+                  }
+                  let mut total_counter = total_counter_arc.lock().unwrap();
+                  *total_counter += 1;
+                  if *total_counter % 10000 == 0 {
+                     let num_lyndon_words = num_lyndon_words_arc.lock().unwrap();
+                     let bwt_win_counter = bwt_win_counter_arc.lock().unwrap();
+                     let bbwt_win_counter = bbwt_win_counter_arc.lock().unwrap();
+                     let tie_win_counter = tie_win_counter_arc.lock().unwrap();
+                     let best_bbwt_bwtrun = best_bbwt_bwtrun_arc.read().unwrap();
+                     let best_bbwt_bbwtrun = best_bbwt_bbwtrun_arc.read().unwrap();
+                     let best_bbwt_text = best_bbwt_text_arc.read().unwrap();
+                     println!("total_count={}", *total_counter);
+                     for length in 20..max_length {
+                        let texthandle = best_bbwt_text[length].read().unwrap();
+                        println!("length={} lyndon_words={} bwt_wins={} bbwt_wins={} ties={}", length, num_lyndon_words[length], bwt_win_counter[length], bbwt_win_counter[length], tie_win_counter[length]);
+                        // println!("length={} text={} bwt_runs={} bbwt_runs={}", length, str::from_utf8(&best_bbwt_text[length]).unwrap(), best_bbwt_bwtrun[length], best_bbwt_bbwtrun[length]);
+                        println!("length={} text={} bwt_runs={} bbwt_runs={}", length, binary_vector_to_str(&texthandle), best_bbwt_bwtrun[length], best_bbwt_bbwtrun[length]);
+                     }
+                  }
+               }
+            }
+         }
+      });
+      handles.push(handle);
+   }
+   for handle in handles {
+      handle.join().unwrap();
+   }
 
     // for k in 2..20 {
     //     let mut text = Vec::new();
