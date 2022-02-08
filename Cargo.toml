@@ -17,6 +17,8 @@ num = "0.1"
 segment-tree = "2"
 rand = "0.8.1"
 approx = "0.5.0"
+no_deadlocks = { vesion = "=1.2.0"}
+
 
 [[test]]
 name = "core-test"

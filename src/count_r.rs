@@ -10,34 +10,6 @@ use log::{debug,info};
 #[allow(dead_code)] mod io;
 #[allow(dead_code)] mod fibonacci;
 
-
-
-/// computes the rightmost column of the BWT matrix
-/// note that this is a O(n^2 lg n) algorithm!
-fn compute_bwt_matrix<T : std::cmp::Ord + Copy>(text: &[T]) -> Vec<T> {
-    let mut indices = Vec::with_capacity(text.len());
-    for i in 0..text.len() {
-        indices.push(i);
-    }
-    indices.sort_by(|a, b| -> std::cmp::Ordering { 
-        for i in 0..text.len() {
-            let cmp = text[(a+i) % text.len()].cmp(&text[(b+i) % text.len()]);
-            if cmp == std::cmp::Ordering::Equal {
-                continue;
-            }
-            return cmp;
-        }
-        return std::cmp::Ordering::Equal;
-    });
-    let mut bwt = Vec::with_capacity(text.len());
-    for i in 0..text.len() {
-        bwt.push(text[(indices[i]+text.len()-1) % text.len()]);
-    }
-    bwt
-}
-
-
-
 fn main() {
     let matches = clap_app!(count_r =>
         (about: "computes the BWT via divsufsort")
@@ -71,7 +43,7 @@ fn main() {
 
     info!("build bwt");
     let bwt = match use_matrix { 
-        true => compute_bwt_matrix(&text),
+        true => if text.len() < 100 { core::bwt_by_matrix_naive(&text) } else { core::bwt_by_matrix(&text) },
         false => core::bwt_from_text_by_sa(&text) 
     };
     let r = core::number_of_runs(&mut bwt.as_slice());
