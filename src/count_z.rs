@@ -80,7 +80,7 @@ pub const MAX_TEST_ITER : usize = 4096;
 
 #[test]
 fn test_compute_lz77() {
-    for text in core::RandomStringFactory::new(0..MAX_TEST_ITER as usize, 1) {
+    for text in core::RandomStringGenerator::new(0..MAX_TEST_ITER as usize, 1) {
         // text.push(0u8);
         let n = text.len();
         let sa = { 

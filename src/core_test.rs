@@ -10,7 +10,7 @@ use log::{debug};
 #[test]
 fn test_duval() {
     pub const MAX_TEST_ITER : usize = 4096;
-    for text in core::RandomStringFactory::new(0..MAX_TEST_ITER as usize, 1) {
+    for text in core::RandomStringGenerator::new(0..MAX_TEST_ITER as usize, 1) {
        
         let factors = core::duval(&text);
 
@@ -43,7 +43,7 @@ fn test_bwt_from_text_by_sa() {
 #[test]
 fn test_bwt_by_matrix() {
    pub const MAX_TEST_ITER : usize = 4096;
-    for text in core::RandomStringFactory::new(0..MAX_TEST_ITER as usize, 1) {
+    for text in core::RandomStringGenerator::new(0..MAX_TEST_ITER as usize, 1) {
         if text.len() < 2 { continue; }
         let naive  = core::bwt_by_matrix_naive(&text[0..text.len()-1]);
         let clever = core::bwt_by_matrix(&text[0..text.len()-1]);
@@ -58,7 +58,7 @@ fn test_bwt_by_matrix() {
 fn test_lyndon_conjugate() {
     const MAX_TEST_ITER : usize = 4096;
     // use crate::test;
-    for text in core::RandomStringFactory::new(0..MAX_TEST_ITER as usize, 1) {
+    for text in core::RandomStringGenerator::new(0..MAX_TEST_ITER as usize, 1) {
        let n = text.len();
        let lconjugate = core::lyndon_conjugate(&text);
        assert_lt!(lconjugate, n);
@@ -81,7 +81,7 @@ fn test_lyndon_conjugate() {
 fn test_border_array() {
     const MAX_TEST_ITER : usize = 4096;
     // use crate::test;
-    for text in core::RandomStringFactory::new(0..MAX_TEST_ITER as usize, 1) {
+    for text in core::RandomStringGenerator::new(0..MAX_TEST_ITER as usize, 1) {
        let border = core::border_array(&text);
        assert_eq!(border[0],0);
        assert_eq!(border[1],0);
@@ -97,7 +97,7 @@ fn test_border_array() {
 fn test_period() {
     const MAX_TEST_ITER : usize = 4096;
     // use crate::test;
-    for text in core::RandomStringFactory::new(0..MAX_TEST_ITER as usize, 1) {
+    for text in core::RandomStringGenerator::new(0..MAX_TEST_ITER as usize, 1) {
        let border = core::border_array(&text);
        let period = core::smallest_period(&border);
        for i in 0..text.len()-period {
