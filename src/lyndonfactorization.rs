@@ -16,6 +16,7 @@ fn main() {
 		(about: "computes the Lyndon factors with Duval's algorithm")
 		(@arg prefix: -p --prefix +takes_value "the length of the prefix to parse")
 		(@arg input: -i --input +takes_value +required "the input file to use")
+		(@arg output: -o --output +takes_value "output Lyndon factors in FASTA format")
 	).get_matches();
 
 	let text_filename = matches.value_of("input").unwrap();
@@ -43,6 +44,20 @@ fn main() {
 
     println!("{} algo=duval time_ms={} factors={}", result_format, now.elapsed().as_millis(), factors.len());
 
+
+    match matches.value_of("output") {
+	None => (), 
+	Some(output_filename) => {
+	    use std::io::Write;
+	    let mut os = std::io::BufWriter::new(std::fs::File::create(&output_filename).unwrap());
+	    os.write_all(b">Factor 1\n").unwrap();
+	    os.write_all(&text[0..factors[0]]).unwrap();
+	    for factor_id in 1..factors.len() {
+	    write!(&mut os, "\n>Factor {}\n", factor_id+1).unwrap();
+	    os.write_all(&text[factors[factor_id-1]..factors[factor_id]]).unwrap();
+	    }
+    }};
+    
     #[cfg(debug_assertions)]
     {
         let n = text.len();
