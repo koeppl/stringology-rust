@@ -37,6 +37,7 @@ fn main() {
     let now = Instant::now();
 
     let factors = core::duval(&text);
+    assert_eq!(*factors.last().unwrap()+1, text.len());
 
     if log_enabled!(Level::Debug) {
         debug!("Lyndon factorization : {:?}", factors);
@@ -51,10 +52,10 @@ fn main() {
 	    use std::io::Write;
 	    let mut os = std::io::BufWriter::new(std::fs::File::create(&output_filename).unwrap());
 	    os.write_all(b">Factor 1\n").unwrap();
-	    os.write_all(&text[0..factors[0]]).unwrap();
+	    os.write_all(&text[0..factors[0]+1]).unwrap();
 	    for factor_id in 1..factors.len() {
 	    write!(&mut os, "\n>Factor {}\n", factor_id+1).unwrap();
-	    os.write_all(&text[factors[factor_id-1]..factors[factor_id]]).unwrap();
+	    os.write_all(&text[factors[factor_id-1]+1..factors[factor_id]+1]).unwrap();
 	    }
     }};
     
