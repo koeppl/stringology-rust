@@ -54,20 +54,27 @@ fn main() {
 	    os.write_all(b">Factor 1\n").unwrap();
 	    os.write_all(&text[0..factors[0]+1]).unwrap();
 	    for factor_id in 1..factors.len() {
-	    write!(&mut os, "\n>Factor {}\n", factor_id+1).unwrap();
+	    // do not print the last NULL byte factor if such a factor exists
+	    if factor_id == factors.len()-1 && factors[factor_id]+1 == text.len() && text[text.len()-1] == 0 {
+		break;
+	    }
+	    info!("writing Factor {} : {} -> {}", factor_id+1, factors[factor_id-1]+1, factors[factor_id]+1);
+	    write!(&mut os, "\n>Factor {} : {} -> {}\n", factor_id+1, factors[factor_id-1]+1, factors[factor_id]+1).unwrap();
 	    os.write_all(&text[factors[factor_id-1]+1..factors[factor_id]+1]).unwrap();
 	    }
     }};
     
-    #[cfg(debug_assertions)]
-    {
-        let n = text.len();
-        let sa = { 
-            let mut sa = vec![0; n];
-            cdivsufsort::sort_in_place(&text, sa.as_mut_slice());
-            sa
-        };
-        let isa = core::inverse_permutation(&sa.as_slice());
-        debug_assert_eq!(factors, core::isa_lyndon_factorization(&isa));
+    if log_enabled!(Level::Debug) {
+	#[cfg(debug_assertions)]
+	{
+	    let n = text.len();
+	    let sa = { 
+		let mut sa = vec![0; n];
+		cdivsufsort::sort_in_place(&text, sa.as_mut_slice());
+		sa
+	    };
+	    let isa = core::inverse_permutation(&sa.as_slice());
+	    debug_assert_eq!(factors, core::isa_lyndon_factorization(&isa));
+	}
     }
 }
