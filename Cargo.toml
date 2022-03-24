@@ -25,6 +25,10 @@ name = "core-test"
 path = "src/core_test.rs"
 
 [[bin]]
+name = "bwt"
+path = "src/bwt.rs"
+
+[[bin]]
 name = "fibonacci"
 path = "src/fibonacci.rs"
 
@@ -39,6 +43,10 @@ path = "src/kolakoski.rs"
 [[bin]]
 name = "thuemorse"
 path = "src/thuemorse.rs"
+
+[[bin]]
+name = "paperfolding"
+path = "src/paperfolding.rs"
 
 [[bin]]
 name = "count_r"

@@ -141,7 +141,7 @@ fn main() {
                            let bbwt = core::bbwt_naive(&conjugate);
                            let bbwt_runs = core::number_of_runs(&mut bbwt.as_slice());
                            let num_conjugates = number_distinct_lyndon_factors(&conjugate);
-                           if bbwt_runs < num_conjugates  {
+                           if bbwt_runs <= num_conjugates + 1  {
                               println!("bbwt={} conjugate={} bbwt_runs={} #factors={}", binary_vector_to_str(&bbwt), binary_vector_to_str(&conjugate), bbwt_runs, num_conjugates);
                            }
 
