@@ -29,6 +29,14 @@ name = "bwt"
 path = "src/bwt.rs"
 
 [[bin]]
+name = "mtf"
+path = "src/mtf.rs"
+
+[[bin]]
+name = "rle"
+path = "src/rle.rs"
+
+[[bin]]
 name = "fibonacci"
 path = "src/fibonacci.rs"
 

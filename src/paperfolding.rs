@@ -43,10 +43,15 @@ fn paperfolding(i : u8) -> Vec<u8> {
 
 #[test]
 fn test_paperfolding() {
-    assert_eq!(b"d"            , paperfolding(1).as_slice());
-    assert_eq!(b"db"           , paperfolding(2).as_slice());
-    assert_eq!(b"dbcb"         , paperfolding(3).as_slice());
-    assert_eq!(b"dbcbdacb"     , paperfolding(4).as_slice());
+    assert_eq!(b"d"            , paperfolding(0).as_slice());
+    assert_eq!(b"db"           , paperfolding(1).as_slice());
+    assert_eq!(b"dbcb"         , paperfolding(2).as_slice());
+    assert_eq!(b"dbcbdacb"     , paperfolding(3).as_slice());
+    
+    let mut l = to_binary(&paperfolding(10));
+    l.resize(99,0);
+    assert_eq!(b"110110011100100111011000110010011101100111001000110110001100100111011001110010011101100011001000110", l.as_slice());
+   // [0..100] );
 }
 
 fn to_binary(text : &[u8]) -> Vec<u8> {
@@ -83,7 +88,7 @@ fn main() {
     let matches = clap_app!(bwt =>
         (about: "computes the BWT via divsufsort")
         (@arg number:  -n --number +takes_value --required "the index of the sequence")
-        (@arg binary:  -q --quaternary "output quaternary instead of binary")
+        (@arg quaternary:  -q --quaternary "output quaternary instead of binary")
     ).get_matches();
 
     let index = matches.value_of("number").unwrap_or("0").parse::<u8>().unwrap();

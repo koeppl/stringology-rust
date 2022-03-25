@@ -8,7 +8,6 @@ use log::{debug,info};
 
 #[allow(dead_code)] mod core;
 #[allow(dead_code)] mod io;
-#[allow(dead_code)] mod fibonacci;
 
 fn main() {
     let matches = clap_app!(bwt =>
