@@ -33,6 +33,10 @@ name = "mtf"
 path = "src/mtf.rs"
 
 [[bin]]
+name = "randomstring"
+path = "src/randomstring.rs"
+
+[[bin]]
 name = "count_runs"
 path = "src/count_runs.rs"
 
