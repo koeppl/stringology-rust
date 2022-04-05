@@ -12,21 +12,21 @@ fn main() {
         (about: "reverts all bytes of a given file")
         (@arg alphabet: -a --alphabet +takes_value "alphabet size")
         (@arg length:  -l --length +takes_value "length")
-        (@arg seed: -s --seed +takes_value "random seed")
+        // (@arg seed: -s --seed +takes_value "random seed")
         (@arg output: -o --outfile +takes_value "optional: the output file to write (otherwise write from stdout")
         ).get_matches();
 
 
     let alphabet_size = matches.value_of("alphabet").unwrap_or("0").parse::<usize>().unwrap();
     let string_length = matches.value_of("length").unwrap_or("10").parse::<usize>().unwrap();
-    let seed = matches.value_of("length").unwrap_or("0").parse::<usize>().unwrap();
+    // let seed = matches.value_of("length").unwrap_or("0").parse::<usize>().unwrap();
 
     use std::collections::HashSet;
 
     let mut rng = rand::thread_rng();
     let mut text = vec![0u8;string_length];
     let mut charset = HashSet::new();
-    for i in 1..text.len() {
+    for i in 0..text.len() {
         let mut newchar = rng.sample(Alphanumeric);
         if alphabet_size != 0 && charset.len() == alphabet_size {
             while !charset.contains(&newchar) {
