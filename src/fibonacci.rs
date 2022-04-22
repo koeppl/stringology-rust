@@ -68,12 +68,12 @@ fn test_fibonacci() {
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     if args.len() < 2 {
-        eprintln!("prints the k-th Fibonacci word\nUsage: {} [number k >= 1]", args[0]);
+        eprintln!("prints the k-th Fibonacci word\nUsage: {} [number k >= 0]", args[0]);
         std::process::exit(1);
     }
     env_logger::init();
 
-    let index : u8 = args[1].parse().unwrap();
+    let index : u8 = args[1].parse::<u8>().unwrap() + 1u8;
     use std::io::Write;
     std::io::stdout().write_all(fibonacci(index).as_slice()).unwrap();
 }

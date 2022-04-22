@@ -59,10 +59,10 @@ fn test_perioddoubling() {
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     if args.len() < 2 {
-        eprintln!("prints the i-th period-doubling word\nUsage: {} [number >= 1]", args[0]);
+        eprintln!("prints the i-th period-doubling word\nUsage: {} [number >= 0]", args[0]);
         std::process::exit(1);
     }
-    let index : u8 = args[1].parse().unwrap();
+    let index : u8 = args[1].parse::<u8>().unwrap() + 1;
     use std::io::Write;
     std::io::stdout().write_all(iterate_morphism(index, period_doubling).as_slice()).unwrap();
 }
