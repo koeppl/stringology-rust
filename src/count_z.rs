@@ -9,7 +9,6 @@ use segment_tree::ops::Min;
 
 extern crate cdivsufsort;
 extern crate env_logger;
-#[macro_use] extern crate clap;
 
 extern crate log;
 use log::{debug, log_enabled, info, Level};
@@ -105,19 +104,29 @@ fn test_compute_lz77() {
 }
 
 
+extern crate clap;
+use clap::Parser;
+/// computes the number of LZ77 factors
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+
+   /// the input file to read (otherwise read from stdin)
+   #[arg(short, long)]
+   infilename: Option<String>,
+
+   /// the length of the prefix to parse
+   #[arg(short, long, default_value_t = 0)]
+   prefixlength: usize,
+}
+
+
 fn main() {
-	let matches = clap_app!(myapp =>
-		(version: "1.0")
-		(about: "computes the number of LZ77 factors")
-		(@arg prefix: -p --prefix +takes_value "the length of the prefix to parse")
-		(@arg input: -i --input +takes_value +required "the input file to use")
-	).get_matches();
+    let args = Args::parse();
 
-	let text_filename = matches.value_of("input").unwrap();
-	let prefix_length = matches.value_of("prefix").unwrap_or("0").parse::<usize>().unwrap();
 
-	info!("filename: {}", text_filename);
-	info!("prefix_length: {}", prefix_length);
+    info!("filename: {}", core::get_filename(&args.infilename));
+    info!("args.prefixlength: {}", args.prefixlength);
 
     env_logger::init();
     use std::time::Instant;
@@ -126,12 +135,7 @@ fn main() {
     info!("Build DS");
     let mut now = Instant::now();
 
-    let text = io::file2byte_vector(&text_filename, prefix_length);
-    // let text = {
-    //     let mut text = io::file2byte_vector(&text_filename, prefix_length);
-    //     text.push(0u8);
-    //     text
-    // };
+    let text = io::file_or_stdin2byte_vector(core::stringopt_stropt(&args.infilename), args.prefixlength);
 
     let sa = { 
         let mut sa = vec![0; text.len()];
@@ -155,7 +159,7 @@ fn main() {
 
     info!("time: {}", now.elapsed().as_millis()); 
 
-    let result_format = format!("RESULT file={} length={} ", text_filename, prefix_length);
+    let result_format = format!("RESULT file={} length={} ", core::get_filename(&args.infilename), args.prefixlength);
 
     now = Instant::now();
     info!("run LZ77");

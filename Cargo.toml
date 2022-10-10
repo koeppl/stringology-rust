@@ -7,22 +7,32 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-more-asserts = "0.2.1"
+more-asserts = "0.3.1"
 byte_string = "1.0.0"
 cdivsufsort = "2.0.0"
 log = "0.4.0"
-env_logger = "0.8.3"
-clap = "3.0.0-beta.2"
-num = "0.1"
+env_logger = "0.9.1"
+clap = { version = "4.0.11", features = ["derive"] }
+num = "0.4.0"
 segment-tree = "2"
 rand = "0.8.1"
 approx = "0.5.0"
 no_deadlocks = { vesion = "=1.2.0"}
+generator = "0.7"
+itertools = "0.10.3"
 
 
 [[test]]
 name = "core-test"
 path = "src/core_test.rs"
+
+[[bin]]
+name = "enumerate_lexparse"
+path = "src/enumerate_lexparse.rs"
+
+[[bin]]
+name = "generator_kmer"
+path = "src/generator_kmer.rs"
 
 [[bin]]
 name = "bwt"
@@ -31,6 +41,10 @@ path = "src/bwt.rs"
 [[bin]]
 name = "mtf"
 path = "src/mtf.rs"
+
+[[bin]]
+name = "rle"
+path = "src/rle.rs"
 
 [[bin]]
 name = "randomstring"

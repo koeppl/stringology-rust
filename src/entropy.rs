@@ -1,13 +1,11 @@
 extern crate cdivsufsort;
 extern crate env_logger;
-#[macro_use] extern crate clap;
 #[macro_use] extern crate more_asserts;
 
 #[allow(dead_code)] mod io;
 #[allow(dead_code)] mod core;
 
-#[macro_use] 
-extern crate approx;
+#[macro_use] extern crate approx;
 
 
 extern crate log;
@@ -121,24 +119,35 @@ fn test_entropy() {
     
 }
 
+extern crate clap;
+use clap::Parser;
+/// reverts all bytes of a given file
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+
+   /// the input file to read (otherwise read from stdin)
+   #[arg(short, long)]
+   infilename: Option<String>,
+
+   /// the length of the prefix to parse
+   #[arg(short, long, default_value_t = 0)]
+   prefixlength: usize,
+
+   /// the order of the entropy
+   #[arg(short, long, default_value_t = 0)]
+   order : usize,
+}
+
+
 
 fn main() {
-    let matches = clap_app!(entropy =>
-        (about: "computes the empirical entropy of a byte text")
-        (@arg order: -o --order +takes_value "the order of the entropy")
-        (@arg prefix: -p --prefix +takes_value "the length of the prefix to parse")
-        (@arg input: -i --input +takes_value "the input file to use")
-    ).get_matches();
-
-    let input_filename = matches.value_of("input").unwrap_or("stdin");
-    let prefix_length = matches.value_of("prefix").unwrap_or("0").parse::<usize>().unwrap();
-    let order = matches.value_of("order").unwrap_or("0").parse::<usize>().unwrap();
-
+    let args = Args::parse();
 
     env_logger::init();
 
-    info!("input_filename: {}", input_filename);
-    info!("prefix_length: {}", prefix_length);
+    info!("input_filename: {}", core::get_filename(&args.infilename));
+    info!("prefix_length: {}", args.prefixlength);
 
     use std::time::Instant;
     let now = Instant::now();
@@ -146,15 +155,15 @@ fn main() {
     info!("read text");
 
     let text = {
-        let mut text = io::file_or_stdin2byte_vector(&matches.value_of("input"), prefix_length);
+        let mut text = io::file_or_stdin2byte_vector(core::stringopt_stropt(&args.infilename), args.prefixlength);
         text.push(0u8);
         text
     };
 
     info!("compute entropy");
 
-    let h0 = if order == 0 { zero_order_entropy(text.iter()) }  else { kth_order_entropy(&text, order) };
+    let h0 = if args.order == 0 { zero_order_entropy(text.iter()) }  else { kth_order_entropy(&text, args.order) };
 
-    println!("RESULT algo=count_entropy order={} time_ms={} length={} entropy={} input={}", order, now.elapsed().as_millis(), text.len(), h0, input_filename);
+    println!("RESULT algo=count_entropy order={} time_ms={} length={} entropy={} input={}", args.order, now.elapsed().as_millis(), text.len(), h0, core::get_filename(&args.infilename));
 
 }

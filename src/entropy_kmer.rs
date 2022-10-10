@@ -1,9 +1,9 @@
 extern crate cdivsufsort;
 extern crate env_logger;
-#[macro_use] extern crate clap;
 #[macro_use] extern crate more_asserts;
 
 #[allow(dead_code)] mod io;
+mod core;
 
 use std::collections::HashMap;
 
@@ -36,7 +36,7 @@ fn entropy_via_kmer_counting<'a, I: Iterator<Item = std::io::Result<u8> >>(text_
             Some(val) => { *val += 1; }
             None => { kmers.insert(kmer, 1); }
         };
-    };
+    }
 
     for byte in text_iter {
         increment_kmer(order, ringbuf, &mut kmers);
@@ -106,31 +106,41 @@ fn test_entropy() {
     }
 }
 
+extern crate clap;
+use clap::Parser;
+/// reverts all bytes of a given file
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+
+   /// the input file to read (otherwise read from stdin)
+   #[arg(short, long)]
+   infilename: Option<String>,
+
+   /// the length of the prefix to parse
+   #[arg(short, long, default_value_t = 0)]
+   prefixlength: usize,
+
+   /// the order of the entropy
+   #[arg(short, long, default_value_t = 0)]
+   order : usize,
+}
+
+
+
 fn main() {
-    let matches = clap_app!(entropykmer =>
-        (about: "computes the empirical entropy of a byte text")
-        (@arg order: -o --order +takes_value "the order of the entropy [1..7]")
-        (@arg prefix: -p --prefix +takes_value "the length of the prefix to parse")
-        (@arg input: -i --input +takes_value "the input file to use")
-    ).get_matches();
+    let args = Args::parse();
 
-    let input_filename = matches.value_of("input").unwrap_or("stdin");
-    let prefix_length = {
-        let prefix_length = matches.value_of("prefix").unwrap_or("0").parse::<usize>().unwrap();
-        if prefix_length == 0 { std::usize::MAX } else { prefix_length }
-    };
-    let order = matches.value_of("order").unwrap_or("1").parse::<usize>().unwrap();
-
-    assert_gt!(order, 0);
-    assert_le!(order, 7);
+    assert_gt!(args.order, 0);
+    assert_le!(args.order, 7);
     env_logger::init();
 
-    info!("input_filename: {}", input_filename);
-    info!("prefix_length: {}", prefix_length);
+    info!("input_filename: {}", core::get_filename(&args.infilename));
+    info!("prefix_length: {}", args.prefixlength);
 
     info!("read text");
     let text = {
-        let mut text = io::file_or_stdin2byte_vector(&matches.value_of("input"), prefix_length);
+        let mut text = io::file_or_stdin2byte_vector(core::stringopt_stropt(&args.infilename), args.prefixlength);
         text.push(0u8);
         text
     };
@@ -141,7 +151,7 @@ fn main() {
     let now = Instant::now();
 
     use std::io::Read;
-    let entropy = entropy_via_kmer_counting(&mut text.as_slice().bytes().into_iter(), order);
+    let entropy = entropy_via_kmer_counting(&mut text.as_slice().bytes().into_iter(), args.order);
 
-    println!("RESULT algo=count_entropy_hash order={} time_ms={} length={} entropy={} input={}", order, now.elapsed().as_millis(), entropy.1, entropy.0, input_filename);
+    println!("RESULT algo=count_entropy_hash order={} time_ms={} length={} entropy={} input={}", args.order, now.elapsed().as_millis(), entropy.1, entropy.0, core::get_filename(&args.infilename));
 }

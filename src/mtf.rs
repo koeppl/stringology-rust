@@ -1,11 +1,9 @@
 extern crate byte_string;
 extern crate env_logger;
-#[macro_use] extern crate clap;
 #[macro_use] extern crate more_asserts;
 
 #[allow(dead_code)] mod core;
 #[allow(dead_code)] mod io;
-
 
 
 pub fn mtf<R : std::io::Read, W: std::io::Write>(mut reader : &mut R, writer : &mut W) {
@@ -42,16 +40,25 @@ fn test_mtf() {
     assert_eq!(mtf_vector(&mut b"aabb".as_ref()),  ['a' as u8, 0, 'b' as u8, 0]);
 }
 
+extern crate clap;
+use clap::Parser;
+/// computes move to front encoding
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+   /// the input file to read (otherwise read from stdin)
+   #[arg(short, long)]
+   infilename: Option<String>,
+
+   /// the output file to write (otherwise write from stdout)
+   #[arg(short, long)]
+   outfilename: Option<String>,
+}
 
 fn main() {
-    let matches = clap_app!(mtf =>
-        (about: "computes move to front")
-        (@arg input:  -i --infile  +takes_value "the input file to read (otherwise read from stdin")
-        (@arg output: -o --outfile  +takes_value "file to which to write the BWT (otherwise write to stdout")
-    ).get_matches();
-
-    let mut writer = io::stream_or_stdout(matches.value_of("output"));
-    let mut reader = io::stream_or_stdin(matches.value_of("input"));
+    let args = Args::parse();
+    let mut writer = io::stream_or_stdout(core::stringopt_stropt(&args.outfilename));
+    let mut reader = io::stream_or_stdin(core::stringopt_stropt(&args.infilename));
     mtf(&mut reader, &mut writer);
 }
 

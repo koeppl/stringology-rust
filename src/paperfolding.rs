@@ -34,7 +34,7 @@ fn paperfolding(i : u8) -> Vec<u8> {
                 str[target_position] = CHR_C;
                 str[target_position+1] = CHR_A;
             }
-            _ => panic!(format!("unknown sequence : {} at position {}", str[k], k))
+            _ => panic!("unknown sequence : {} at position {}", str[k], k)
         }
     }
 
@@ -76,25 +76,35 @@ fn to_binary(text : &[u8]) -> Vec<u8> {
                 output[2*i] = CHR_ZERO;
                 output[2*i+1] = CHR_ZERO;
             }
-            _ => panic!(format!("unknown sequence : {} at position {}", text[i], i))
+            _ => panic!("unknown sequence : {} at position {}", text[i], i)
         }
     }
     output
 }
 
-#[macro_use] extern crate clap;
+
+extern crate clap;
+use clap::Parser;
+/// computes the k-th paperfolding sequence
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+
+   /// the index of the sequence
+   #[arg(short, long, default_value_t = 0)]
+   index : u8,
+
+   /// the index of the sequence
+   #[arg(short, long, default_value_t = false)]
+   quaternary : bool,
+
+}
 
 fn main() {
-    let matches = clap_app!(bwt =>
-        (about: "computes the BWT via divsufsort")
-        (@arg number:  -n --number +takes_value --required "the index of the sequence")
-        (@arg quaternary:  -q --quaternary "output quaternary instead of binary")
-    ).get_matches();
-
-    let index = matches.value_of("number").unwrap_or("0").parse::<u8>().unwrap();
+    let args = Args::parse();
 
     use std::io::Write;
-    let sequence = paperfolding(index);
+    let sequence = paperfolding(args.index);
     
-    std::io::stdout().write_all( if matches.is_present("quaternary") { sequence } else { to_binary(&sequence) }.as_slice()).unwrap();
+    std::io::stdout().write_all( if args.quaternary { sequence } else { to_binary(&sequence) }.as_slice()).unwrap();
 }

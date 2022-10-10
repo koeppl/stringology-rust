@@ -15,7 +15,7 @@ pub fn file2byte_vector(filename: &str, prefix_length : usize) -> Vec<u8> {
 
     match f.read_to_end(&mut buffer) {
         Ok(length) => assert_eq!(length, buffer.len()),
-        Err(x) =>  panic!(x)
+        Err(x) =>  panic!("in file2byte_vector: {}", x)
     };
     buffer
 }
@@ -37,7 +37,7 @@ pub fn stdin2byte_vector(prefix_length : usize) -> Vec<u8> {
     }
 }
 
-pub fn file_or_stdin2byte_vector(filename: &Option<&str>, prefix_length : usize) -> Vec<u8> {
+pub fn file_or_stdin2byte_vector(filename: Option<&str>, prefix_length : usize) -> Vec<u8> {
     match filename {
         Some(filename) => file2byte_vector(filename, prefix_length),
         None => stdin2byte_vector(prefix_length)

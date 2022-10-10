@@ -1,20 +1,23 @@
 extern crate byte_string;
 extern crate env_logger;
-#[macro_use] extern crate clap;
-#[macro_use] extern crate more_asserts;
-
-extern crate log;
-use log::{debug,info};
+// #[macro_use] extern crate more_asserts;
 
 #[allow(dead_code)] mod core;
 #[allow(dead_code)] mod io;
 
-fn main() {
-    let matches = clap_app!(count_runs =>
-        (about: "computes the number of runs")
-        (@arg input:  -i --infile  +takes_value "the input file to read (otherwise read from stdin")
-    ).get_matches();
+extern crate clap;
+use clap::Parser;
+/// computes the number of character runs in a text
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+   /// the input file to read (otherwise read from stdin)
+   #[arg(short, long)]
+   infilename: Option<String>,
+}
 
-    let mut reader = io::stream_or_stdin(matches.value_of("input"));
+fn main() {
+    let args = Args::parse();
+    let mut reader = io::stream_or_stdin(core::stringopt_stropt(&args.infilename));
     println!("{}", core::number_of_runs(&mut reader));
 }

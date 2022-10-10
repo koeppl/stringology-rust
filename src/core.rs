@@ -3,6 +3,9 @@ use crate::io;
 extern crate cdivsufsort;
 extern crate log;
 use log::debug;
+use more_asserts::debug_assert_lt;
+use more_asserts::assert_gt;
+use more_asserts::assert_lt;
 
 pub fn bwt_from_text_by_sa(text: &Vec<u8>) -> Vec<u8> {
     let n = text.len();
@@ -537,5 +540,22 @@ pub fn number_of_runs<R : std::io::Read>(reader : &mut R) -> usize {
             }
             run_counter
         }
+    }
+}
+
+
+/// converts &Option<String> to Option<&str>
+pub fn stringopt_stropt(i : &Option<String>) -> Option<&str> {
+    match i {
+        None => None,
+        Some(s) => Some(s.as_str())
+    }
+}
+
+
+pub fn get_filename(o : &Option<String>) -> &str {
+    match o {
+	None => "none",
+	Some(s) => s
     }
 }

@@ -1,40 +1,50 @@
-#[macro_use] extern crate more_asserts;
+// #[macro_use] extern crate more_asserts;
 
 #[allow(dead_code)] mod core;
 #[allow(dead_code)] mod io;
 
 extern crate cdivsufsort;
 extern crate env_logger;
-#[macro_use] extern crate clap;
 
 extern crate log;
 use log::{debug, log_enabled, info, Level};
 
+extern crate clap;
+use clap::Parser;
+/// computes the Lyndon factors with Duval's algorithm
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+
+   /// the input file to read (otherwise read from stdin)
+   #[arg(short, long)]
+   infilename: Option<String>,
+
+   /// the output file to write (otherwise write from stdout)
+   #[arg(short, long)]
+   outfilename: Option<String>,
+
+   /// the length of the prefix to parse
+   #[arg(short, long, default_value_t = 0)]
+   prefixlength: usize,
+}
+
 fn main() {
-	let matches = clap_app!(myapp =>
-		(version: "1.0")
-		(about: "computes the Lyndon factors with Duval's algorithm")
-		(@arg prefix: -p --prefix +takes_value "the length of the prefix to parse")
-		(@arg input: -i --input +takes_value +required "the input file to use")
-		(@arg output: -o --output +takes_value "output Lyndon factors in FASTA format")
-	).get_matches();
+    let args = Args::parse();
 
-	let text_filename = matches.value_of("input").unwrap();
-	let prefix_length = matches.value_of("prefix").unwrap_or("0").parse::<usize>().unwrap();
-
-	info!("filename: {}", text_filename);
-	info!("prefix_length: {}", prefix_length);
+    info!("filename: {}", core::get_filename(&args.infilename));
+    info!("args.prefixlength: {}", args.prefixlength);
 
     env_logger::init();
     use std::time::Instant;
 
-    let result_format = format!("RESULT file={} length={} ", text_filename, prefix_length);
+    let result_format = format!("RESULT file={} length={} ", core::get_filename(&args.infilename), args.prefixlength);
 
     info!("read text");
 
-    let text = io::file2byte_vector(&text_filename, prefix_length);
+    let text = io::file_or_stdin2byte_vector(core::stringopt_stropt(&args.infilename), args.prefixlength);
 
-    let now = Instant::now();
+    let timenow = Instant::now();
 
     let factors = core::duval(&text);
     assert_eq!(*factors.last().unwrap()+1, text.len());
@@ -43,10 +53,10 @@ fn main() {
         debug!("Lyndon factorization : {:?}", factors);
     }
 
-    println!("{} algo=duval time_ms={} factors={}", result_format, now.elapsed().as_millis(), factors.len());
+    println!("{} algo=duval time_ms={} factors={}", result_format, timenow.elapsed().as_millis(), factors.len());
 
 
-    match matches.value_of("output") {
+    match args.outfilename {
 	None => (), 
 	Some(output_filename) => {
 	    use std::io::Write;

@@ -27,10 +27,10 @@ fn binary_vector_to_str(text : &[u8]) -> String {
 
 
 
-   // let counter = Arc::new(Mutex::new([0;max_length]));
+   // let counter = Arc::new(Mutex::new([0;MAX_LENGTH]));
    // let countr2 = Arc::new(Mutex::new(Vec::new()));
    // // let mut c = countr2.lock().unwrap();
-   // for _ in 0..max_length {
+   // for _ in 0..MAX_LENGTH {
    //    // countr2.lock().unwrap().push(Vec::<u8>::new());
    //    countr2.lock().unwrap().push(Arc::new(Mutex::new(Vec::<u8>::new())));
    // }
@@ -104,15 +104,15 @@ fn test_number_distinct_lyndon_factors() {
 
 
 fn main() {
-   const max_length : usize = 24;
+   const MAX_LENGTH : usize = 24;
    use std::sync::{Arc};
    use no_deadlocks::{Mutex,RwLock};
    // use std::sync::{Mutex,RwLock};
 
 
-   for pattern_length in 16..max_length {
-      let stats_arc = Arc::new(Mutex::new([[0;max_length+1];max_length+1]));
-      let iterator_arc = Arc::new(Mutex::new(core::LyndonWordGenerator::new(max_length, 2)));
+   for pattern_length in 16..MAX_LENGTH {
+      let stats_arc = Arc::new(Mutex::new([[0;MAX_LENGTH+1];MAX_LENGTH+1]));
+      let iterator_arc = Arc::new(Mutex::new(core::LyndonWordGenerator::new(MAX_LENGTH, 2)));
       let total_counter_arc = Arc::new(RwLock::new(0 as usize));
       let mut handles = vec![];
       for _ in 0..4 {
@@ -133,10 +133,10 @@ fn main() {
                         let bwt = core::bwt_by_matrix_naive(&text);
                         let bwt_runs = core::number_of_runs(&mut bwt.as_slice());
 
-                        let mut best_bbwt_runs = max_length;
+                        let mut best_bbwt_runs = MAX_LENGTH;
                         assert_gt!(text.len(), 0);
                         let lindex = text.len()-1;
-                        assert_lt!(lindex, max_length);
+                        assert_lt!(lindex, MAX_LENGTH);
                         for conjugate in core::ConjugateIterator::new(&text) {
                            let bbwt = core::bbwt_naive(&conjugate);
                            let bbwt_runs = core::number_of_runs(&mut bbwt.as_slice());
@@ -179,8 +179,8 @@ fn main() {
          let stats = stats_arc.lock().unwrap();
 
          let mut max_val = 0;
-         for br in 0..max_length {
-            for bbr in 0..max_length {
+         for br in 0..MAX_LENGTH {
+            for bbr in 0..MAX_LENGTH {
                if max_val < stats[br][bbr] {
                   max_val = stats[br][bbr];
                }
@@ -190,13 +190,13 @@ fn main() {
          println!("binary string length: {} ", pattern_length);
          println!("bwt \\ bbwt : #= {}", my_total_counter);
 
-         for br in 0..max_length {
+         for br in 0..MAX_LENGTH {
             print!("{number:>width$}|", number=br, width=width);
          }
          println!("");
-         for br in 1..max_length {
+         for br in 1..MAX_LENGTH {
             print!("{number:>width$}|", number=br,width=width);
-            for bbr in 1..max_length {
+            for bbr in 1..MAX_LENGTH {
                print!("{number:>width$}|", number=stats[br][bbr],width=width);
             }
             println!("");
@@ -208,8 +208,8 @@ fn main() {
 }
 
 fn probe_main() {
-   const max_length : usize = 16;
-   let it = core::LyndonWordGenerator::new(max_length, 2);
+   const MAX_LENGTH : usize = 16;
+   let it = core::LyndonWordGenerator::new(MAX_LENGTH, 2);
    for text in it {
       // println!("fact = {:?}", text);
       let bwt = core::bwt_by_matrix_naive(&text);
@@ -218,10 +218,10 @@ fn probe_main() {
       let mut bbwt_wins = 0;
       let mut best_conjugate = text.clone();
 
-      let mut best_bbwt_runs = max_length;
+      let mut best_bbwt_runs = MAX_LENGTH;
       assert_gt!(text.len(), 0);
       let lindex = text.len()-1;
-      assert_lt!(lindex, max_length);
+      assert_lt!(lindex, MAX_LENGTH);
       for conjugate in core::ConjugateIterator::new(&text) {
          let bbwt = core::bbwt_naive(&conjugate);
          let bbwt_runs = core::number_of_runs(&mut bbwt.as_slice());
@@ -242,33 +242,33 @@ fn probe_main() {
 }
 
 fn max_lyndon_word() {
-   const max_length : usize = 40;
+   const MAX_LENGTH : usize = 40;
    use std::sync::{Arc, Mutex};
    use std::sync::RwLock;
 
 
-   let num_lyndon_words_arc  = Arc::new(Mutex::new([0;max_length]));
-   let bwt_win_counter_arc   = Arc::new(Mutex::new([0;max_length])); 
-   let bbwt_win_counter_arc  = Arc::new(Mutex::new([0;max_length])); 
-   let tie_win_counter_arc   = Arc::new(Mutex::new([0;max_length])); 
-   let best_bbwt_bbwtrun_arc = Arc::new(RwLock::new([0;max_length]));
-   let best_bbwt_bwtrun_arc  = Arc::new(RwLock::new([0;max_length]));
+   let num_lyndon_words_arc  = Arc::new(Mutex::new([0;MAX_LENGTH]));
+   let bwt_win_counter_arc   = Arc::new(Mutex::new([0;MAX_LENGTH])); 
+   let bbwt_win_counter_arc  = Arc::new(Mutex::new([0;MAX_LENGTH])); 
+   let tie_win_counter_arc   = Arc::new(Mutex::new([0;MAX_LENGTH])); 
+   let best_bbwt_bbwtrun_arc = Arc::new(RwLock::new([0;MAX_LENGTH]));
+   let best_bbwt_bwtrun_arc  = Arc::new(RwLock::new([0;MAX_LENGTH]));
 
 
    let best_bbwt_text_arc = Arc::new(RwLock::new(Vec::new()));
-   for _ in 0..max_length {
+   for _ in 0..MAX_LENGTH {
       best_bbwt_text_arc.write().unwrap().push(Arc::new(RwLock::new(Vec::<u8>::new())));
    }
    let mut handles = vec![];
 
    // let mut score_counter = 0i64; // same, but stores the diff
-   // let mut best_bbwt_text : [Vec<u8>; max_length] = Default::default();
-   // let mut best_bbwt_text = std::iter::repeat(vec![]).take(max_length).collect::<Vec<_>>();
+   // let mut best_bbwt_text : [Vec<u8>; MAX_LENGTH] = Default::default();
+   // let mut best_bbwt_text = std::iter::repeat(vec![]).take(MAX_LENGTH).collect::<Vec<_>>();
 
 
    let total_counter_arc = Arc::new(Mutex::new(0 as usize));
 
-   let iterator_arc = Arc::new(Mutex::new(core::LyndonWordGenerator::new(max_length, 2)));
+   let iterator_arc = Arc::new(Mutex::new(core::LyndonWordGenerator::new(MAX_LENGTH, 2)));
 
    for _ in 0..4 {
       let num_lyndon_words_arc  = Arc::clone(&num_lyndon_words_arc );
@@ -296,7 +296,7 @@ fn max_lyndon_word() {
 
                      assert_gt!(text.len(), 0);
                      let lindex = text.len()-1;
-                     assert_lt!(lindex, max_length);
+                     assert_lt!(lindex, MAX_LENGTH);
                      for conjugate in core::ConjugateIterator::new(&text) {
                         // println!("conj = {:?}", conjugate);
                         // assert_eq!(bwt, bwt_by_matrix_naive(&conjugate));  
@@ -356,7 +356,7 @@ fn max_lyndon_word() {
                      let best_bbwt_bbwtrun = best_bbwt_bbwtrun_arc.read().unwrap();
                      let best_bbwt_text = best_bbwt_text_arc.read().unwrap();
                      println!("total_count={}", *total_counter);
-                     for length in 20..max_length {
+                     for length in 20..MAX_LENGTH {
                         let texthandle = best_bbwt_text[length].read().unwrap();
                         println!("length={} lyndon_words={} bwt_wins={} bbwt_wins={} ties={}", length, num_lyndon_words[length], bwt_win_counter[length], bbwt_win_counter[length], tie_win_counter[length]);
                         // println!("length={} text={} bwt_runs={} bbwt_runs={}", length, str::from_utf8(&best_bbwt_text[length]).unwrap(), best_bbwt_bwtrun[length], best_bbwt_bbwtrun[length]);
