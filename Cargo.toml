@@ -117,3 +117,7 @@ path = "src/reverse.rs"
 [[bin]]
 name = "parallel"
 path = "src/parallel.rs"
+
+[[bin]]
+name = "minsubstring"
+path = "src/minsubstring.rs"

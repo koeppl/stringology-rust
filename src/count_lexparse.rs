@@ -95,13 +95,10 @@ fn main() {
 
     println!("{} algo=lexparse time_ms={} factors={}", result_format, now.elapsed().as_millis(), factors.len());
 
-    match args.outfilename  {
-        None => (),
-        Some(filename) =>  {
-            let mut writer = io::stream_or_stdout(Some(&filename));
-            for fact in factors {
-                writer.write(format!("({},{})", fact.pos, fact.len).as_bytes()).unwrap();
-            }
+    if let Some(filename) = args.outfilename {
+        let mut writer = io::stream_or_stdout(Some(&filename));
+        for fact in factors {
+            writer.write(format!("({},{})", fact.pos, fact.len).as_bytes()).unwrap();
         }
     }
 }

@@ -44,7 +44,7 @@ fn main() {
 
     info!("no_dollar?: {}", args.no_dollar);
     info!("use matrix?: {}", args.use_matrix);
-    info!("args.prefixlength: {}", args.prefixlength);
+    info!("prefixlength: {}", args.prefixlength);
 
 
     info!("read text");
