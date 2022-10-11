@@ -197,14 +197,26 @@ fn main() {
     use succinct::Rank9;
     //TODO: remove clone() calls!
     let rank = Rank9::new(attractor_positions.clone());
-    let select = BinSearchSelect::new(rank.clone());
+    let select = BinSearchSelect::new(rank.clone()); //@ starts with index 0
+    
+    // for i in 0..n {
+    //     println!("rank {} -> {}", i, rank.rank1(i as u64));
+    //     if let Some(pos) = select.select1(i as u64) {
+    //         println!("select {} -> {:?}",i,  pos);
+    //     }
+    // }
+
 
     let mut arr_d = vec!(0; n);
     for i in 0..n {
-        if attractor_positions.get_bit(sa[i] as u64) != true {
-            let successor_rank = rank.rank1(sa[i] as u64)+1;
+        let text_position = sa[i] as u64;
+        if attractor_positions.get_bit(text_position as u64) == false {
+            let successor_rank = rank.rank1(text_position as u64);
             match select.select1(successor_rank) {
-                Some(pos) => arr_d[i] = pos - sa[i] as u64,
+                Some(pos) =>  {
+                    assert!(attractor_positions.get_bit(pos) == true);
+                    arr_d[i] = pos - text_position as u64;
+                },
                 None => arr_d[i] = n as u64,
             }
         }
