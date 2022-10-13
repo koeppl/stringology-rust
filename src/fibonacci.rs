@@ -9,6 +9,23 @@ const SQRT_5 : f64 = 2.23606797749978969641; //(5.0 as f64).sqrt();
 const GOLDEN_RATIO : f64 = (1.0 + SQRT_5)/2.0;
 const PSI : f64 = - 1.0/GOLDEN_RATIO;
 
+
+pub fn fibonacci_number(n: u8) -> usize {
+	// if n == 0 {
+	// 	return 1;
+	// }
+
+	let [mut sum, mut cur, mut old] = [1,1,0];
+	// let mut last = 0;
+	// let mut curr = 1;
+	for _ in 0..n {
+        sum = cur + old;
+        old = cur;
+        cur = sum;
+	}
+	sum
+}
+
 /// Estimates the k-th Fibonacci number with Binet's formula
 fn fibonacci_number_estimate(k : u8) -> f64 {
     (GOLDEN_RATIO.powi(k as i32) - PSI.powi(k as i32))/SQRT_5
@@ -61,6 +78,24 @@ fn test_fibonacci() {
     assert_eq!(b"abaababa"              , fibonacci(5).as_slice());
     assert_eq!(b"abaababaabaab"         , fibonacci(6).as_slice());
     assert_eq!(b"abaababaabaababaababa" , fibonacci(7).as_slice());
+}
+#[test]
+fn test_fibonacci_number() {
+    assert_eq!(1, fibonacci_number(0));
+    assert_eq!(1, fibonacci_number(1));
+    assert_eq!(2, fibonacci_number(2));
+    assert_eq!(3, fibonacci_number(3));
+    assert_eq!(5, fibonacci_number(4));
+    assert_eq!(8, fibonacci_number(5));
+    assert_eq!(13,fibonacci_number(6));
+    assert_eq!(21,fibonacci_number(7));
+    assert_eq!(34,fibonacci_number(8));
+    assert_eq!(55,fibonacci_number(9));
+    assert_eq!(89,fibonacci_number(10));
+    assert_eq!(144,fibonacci_number(11));
+    for k in 0..16 {
+        assert_eq!(fibonacci(k).len(), fibonacci_number(k));
+    }
 }
 
 

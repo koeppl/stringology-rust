@@ -46,6 +46,10 @@ fn iterate_morphism(rounds : u8, morphism: fn(u8) -> &'static[u8]) -> Vec<u8> {
     return text
 }
 
+pub fn period_doubling_sequence(k : u8) -> Vec<u8> {
+    iterate_morphism(k, period_doubling)
+}
+
 #[test]
 fn test_perioddoubling() {
     assert_eq!(b"a"                                , iterate_morphism(1 , period_doubling).as_slice());

@@ -5,6 +5,7 @@ use log::{debug, log_enabled, info, Level};
 
 mod core;
 mod io;
+mod fibonacci;
 
 use std::cell::RefCell;
 
@@ -21,21 +22,16 @@ struct LCPInterval {
 }
 use std::rc::Rc;
 
-// #[derive(Debug)]
-// struct SuffixEdge<'a> {
-//     parent : &'a RefCell<LCPInterval>,
-//     label : u8,
-//     child : &'a RefCell<LCPInterval>,
-// }
+/// represents an edge in the suffix tree
 #[derive(Debug)]
 struct SuffixEdge {
-    parent : RefCell<LCPInterval>,
+    parent : Rc<RefCell<LCPInterval>>,
     label : u8,
-    child : RefCell<LCPInterval>,
+    child : Rc<RefCell<LCPInterval>>,
 }
 
 
-fn lcp_intervals(text: &[u8], sa :&[i32], lcp: &[u32]) -> Vec<LCPInterval> {
+fn lcp_intervals(text: &[u8], sa :&[i32], lcp: &[u32]) -> Vec<SuffixEdge> {
     
     let n = text.len();
     // let root = LCPInterval { depth : 0, begin : 0, end: (n-1) as u32};
@@ -48,19 +44,19 @@ fn lcp_intervals(text: &[u8], sa :&[i32], lcp: &[u32]) -> Vec<LCPInterval> {
     let mut path = vec![Rc::clone(&mut lcpintervals[0]), Rc::clone(&mut lcpintervals[1])];
     // let mut leaf = lcpintervals.last().unwrap();
 
-    // let mut edges = Vec::new();
+    let mut edges = Vec::new();
 
     for i in 1..n {
         let mut child_ptr : Option<Rc<RefCell<LCPInterval>>> = None;
         while lcp[i] < path.last().unwrap().borrow().depth {
             let node = Rc::clone(&path.pop().unwrap());
-            (*(*node).borrow_mut()).end = (i - 1) as u32;
-            // RefCell::get_mut(*node).end = (i - 1) as u32;
-            
-            // if let Some(child) = &child_ptr {
-            //     let label = text[sa[child.borrow().begin as usize] as usize + node.borrow().depth as usize];
-            //     edges.push( SuffixEdge { parent : RefCell::clone(&node), label, child : RefCell::clone(&child) });
-            // }
+            let mut node_ref = (*node).borrow_mut();
+            (*node_ref).end = (i - 1) as u32;
+
+            if let Some(child) = &child_ptr {
+                let label = text[sa[child.borrow().begin as usize] as usize + (*node_ref).depth as usize];
+                edges.push( SuffixEdge { parent : Rc::clone(&node), label, child : Rc::clone(&child) });
+            }
             child_ptr = Some(Rc::clone(&node));
         }
         if lcp[i] > path.last().unwrap().borrow().depth {
@@ -73,36 +69,40 @@ fn lcp_intervals(text: &[u8], sa :&[i32], lcp: &[u32]) -> Vec<LCPInterval> {
                 path.push(Rc::clone(lcpintervals.last().unwrap()));
             }
         }
-        // if child_ptr.is_some() {
-        //     let child  = Rc::clone(&child_ptr.unwrap());
-        //     let label = text[sa[child.borrow().begin as usize] as usize + path.last().unwrap().borrow().depth as usize];
-        //     edges.push( SuffixEdge { parent : Rc::clone(&path.last().unwrap()), label, child });
-        // }
+        if child_ptr.is_some() {
+            let child  = Rc::clone(&child_ptr.unwrap());
+            let label = text[sa[child.borrow().begin as usize] as usize + path.last().unwrap().borrow().depth as usize];
+            edges.push( SuffixEdge { parent : Rc::clone(&path.last().unwrap()), label, child });
+        }
         // create a new leaf for index i
         assert_lt!(sa[i] as u32 + n as u32 - (sa[i] as u32) - 1, n as u32);
         lcpintervals.push(Rc::new(RefCell::new( LCPInterval { depth : n as u32 - (sa[i] as u32) - 1, begin : i as u32, end : i as u32})));
         path.push(Rc::clone(lcpintervals.last().unwrap()));
     }
-    // let mut child_ptr : Option<Rc<RefCell<LCPInterval>>> = None;
+    let mut child_ptr : Option<Rc<RefCell<LCPInterval>>> = None;
     // treat remaining nodes on `path`
     while !path.is_empty() {
         let node = path.pop().unwrap();
         node.borrow_mut().end = (n - 1) as u32;
-        // if let Some(child)  = &child_ptr {
-        //     let label = text[sa[child.borrow().begin as usize] as usize + node.borrow().depth as usize];
-        //     edges.push( SuffixEdge { parent : Rc::clone(&node), label, child : Rc::clone(child) } );
-        // }
-        // child_ptr = Some(Rc::clone(&node));
+        if let Some(child)  = &child_ptr {
+            let label = text[sa[child.borrow().begin as usize] as usize + node.borrow().depth as usize];
+            edges.push( SuffixEdge { parent : Rc::clone(&node), label, child : Rc::clone(child) } );
+        }
+        child_ptr = Some(Rc::clone(&node));
     }
-    let mut ret = Vec::new();
+    // let mut ret = Vec::new();
+
+    #[cfg(debug_assertions)]
     for interval in lcpintervals {
-        ret.push((*(*interval).borrow()).clone());
+        let interval = (*(*interval).borrow()).clone();
+        // ret.push((*(*interval).borrow()).clone());
         // ret.push(*RefCell::as_ptr(interval));
-        assert_lt!(ret.last().unwrap().begin as usize, n);
-        assert_lt!(ret.last().unwrap().end as usize, n);
-        assert_lt!(sa[ret.last().unwrap().begin as usize] as usize + ret.last().unwrap().depth as usize, n);
+        assert_lt!(interval.begin as usize, n);
+        assert_lt!(interval.end as usize, n);
+        assert_lt!(sa[interval.begin as usize] as usize + interval.depth as usize, n);
     }
-    ret
+
+    edges
 }
 
 
@@ -135,37 +135,16 @@ struct Args {
    /// string attractor
    #[arg(short, long,num_args(1..))]
    attractor : Vec<u64>,
-
 }
 
-fn main() {
-    let args = Args::parse();
-    // // print!("{:?}", args.attractor);
-    // // return;
-    // use std::sync::Arc;
-    // let a= Rc::new(RefCell::new(5));
-    // let mut b = a.clone();
-    // *(*b).borrow_mut() = 6;
-    // println!("a={}", a.borrow());
-    // return;
-
-    env_logger::init();
-
-    info!("prefixlength: {}", args.prefixlength);
-
-    info!("read text");
-    // let text = io::file_or_stdin2byte_vector(core::stringopt_stropt(&args.infilename), args.prefixlength);
-    let text = {
-        let mut text = io::file_or_stdin2byte_vector(core::stringopt_stropt(&args.infilename), args.prefixlength);
-        text.push(0u8);
-        text
-    };
-
+fn is_attractor(text : &[u8], attractor: &[u64]) -> bool {
+    assert_gt!(text.len(), 0);
+    assert_eq!(*text.last().unwrap(), 0u8);
     let n = text.len();
-
-    for attractor_position in args.attractor.as_slice() {
-        assert_lt!(*attractor_position as usize, n);
+    for &attractor_position in attractor {
+        assert_lt!(attractor_position as usize, n);
     }
+
 
     let sa = { 
         let mut sa = vec![0; text.len()];
@@ -175,10 +154,10 @@ fn main() {
     // let isa = core::inverse_permutation(&sa.as_slice());
     let lcp = {
         let phi = core::compute_phi(&sa.as_slice());
-        let plcp = core::compute_plcp(&text.as_slice(), &phi.as_slice());
+        let plcp = core::compute_plcp(&text, &phi.as_slice());
         core::compute_lcp(&plcp.as_slice(), &sa.as_slice())
     };
-    let lcpintervals = lcp_intervals(&text, &sa, &lcp);
+    let suffix_edges = lcp_intervals(&text, &sa, &lcp);
     
 
     use succinct::*;
@@ -189,8 +168,8 @@ fn main() {
 
     let attractor_positions = {
         let mut v = BitVector::with_fill(n as u64, false);
-        for s in args.attractor.into_iter() {
-            v.set_bit(s, true);
+        for s in attractor.into_iter() {
+            v.set_bit(*s, true);
         }
         v
     };
@@ -228,19 +207,80 @@ fn main() {
     let d_rmq = SegmentPoint::build(arr_d.clone(), Min);
 
     let mut is_attractor = true;
-    for lcpinterval in lcpintervals {
-        if lcpinterval.depth == 0 {
-            continue
-        } 
-        let rmq = d_rmq.query(lcpinterval.begin as usize, lcpinterval.end as usize + 1);
-        if lcpinterval.depth as u64 <= rmq {
+    for edge in suffix_edges {
+        let lcplength = edge.parent.borrow().depth as usize +1;
+        let lcpinterval = edge.child.borrow();
+        info!("{:?}", lcpinterval);
+        let rmq = d_rmq.query(lcpinterval.begin as usize, lcpinterval.end as usize + 1) as usize;
+        if lcplength <= rmq {
             is_attractor = false;
             let startpos = sa[lcpinterval.begin as usize] as usize;
-            let endpos = std::cmp::min(sa[lcpinterval.begin as usize] as usize+lcpinterval.depth as usize, n as usize);
+            let endpos = std::cmp::min(sa[lcpinterval.begin as usize] as usize + lcplength, n as usize);
             println!("substring '{}' not covered!", str::from_utf8(&text[startpos..endpos]).unwrap());
         }
     }
-    if is_attractor {
+    is_attractor
+}
+
+fn main() {
+    let args = Args::parse();
+    env_logger::init();
+
+    info!("prefixlength: {}", args.prefixlength);
+
+    let text = {
+        let mut text = io::file_or_stdin2byte_vector(core::stringopt_stropt(&args.infilename), args.prefixlength);
+        text.push(0u8);
+        text
+    };
+    let n = text.len();
+
+    for attractor_position in args.attractor.as_slice() {
+        if (*attractor_position as usize) >= n {
+            eprintln!("specified attractor position {} is larger than text (length: {})", *attractor_position, n);
+            std::process::exit(1);
+        }
+    }
+
+    if !is_attractor(text.as_slice(), args.attractor.as_slice()) {
+        println!("not a valid attractor");
+            std::process::exit(2);
+    } else {
         println!("valid attractor");
+    }
+
+}
+
+mod perioddoubling;
+
+/// Period Doubling Sequences have a string attractor of length 2.
+/// Ref:
+/// Luke Schaeffer, Jeffrey Shallit
+/// String Attractors for Automatic Sequences. CoRR abs/2012.06840 (2020), https://arxiv.org/abs/2012.06840
+#[test]
+fn test_period_doubling() {
+    for i in 5..16 {
+        let mut text = perioddoubling::period_doubling_sequence(i);
+        let attractor = [3 * (1<<(i-4)) - 1, 3 * (1<<(i-3)) - 1];
+        println!("len={} -> attr = {:?}", text.len(), attractor);
+        text.push(0u8);
+        assert!(is_attractor(text.as_slice(), &attractor));
+    }
+}
+
+
+/// The minimum string attractor of Sturmian words has been identified to be exactly of size two, 
+/// where the positions are chosen directly at the boundary of the two previous recurrent
+/// substrings.
+/// Ref:
+/// Sabrina Mantaci, Antonio Restivo, Giuseppe Romana, Giovanna Rosone, Marinella Sciortino:
+/// String Attractors and Combinatorics on Words. ICTCS 2019: 57-71, http://ceur-ws.org/Vol-2504/paper8.pdf
+#[test]
+fn test_fibonacci_attractor() {
+    for i in 3..16 {
+        let attractor = [fibonacci::fibonacci_number(i-1) as u64 -1, fibonacci::fibonacci_number(i-1) as u64 -2];
+        let mut text = fibonacci::fibonacci(i);
+        text.push(0u8);
+        assert!(is_attractor(text.as_slice(), &attractor));
     }
 }
