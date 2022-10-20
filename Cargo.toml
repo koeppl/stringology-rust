@@ -122,3 +122,7 @@ path = "src/parallel.rs"
 [[bin]]
 name = "minsubstring"
 path = "src/minsubstring.rs"
+
+[[bin]]
+name = "bms_decoder"
+path = "src/bms_decoder.rs"
