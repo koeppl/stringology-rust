@@ -262,9 +262,9 @@ use stringology::word;
 /// Luke Schaeffer, Jeffrey Shallit
 /// String Attractors for Automatic Sequences. CoRR abs/2012.06840 (2020), https://arxiv.org/abs/2012.06840
 #[test]
-fn test_period_doubling() {
+fn test_attractor_period_doubling() {
     for i in 5..16 {
-        let mut text = word::period_doubling_word(i);
+        let mut text = word::period_doubling_word(i-1);
         let attractor = [3 * (1<<(i-4)) - 1, 3 * (1<<(i-3)) - 1];
         println!("len={} -> attr = {:?}", text.len(), attractor);
         text.push(0u8);
@@ -280,7 +280,7 @@ fn test_period_doubling() {
 /// Sabrina Mantaci, Antonio Restivo, Giuseppe Romana, Giovanna Rosone, Marinella Sciortino:
 /// String Attractors and Combinatorics on Words. ICTCS 2019: 57-71, http://ceur-ws.org/Vol-2504/paper8.pdf
 #[test]
-fn test_fibonacci_attractor() {
+fn test_attractor_fibonacci_attractor() {
     for i in 3..16 {
         let attractor = [word::fibonacci_number(i-1) as u64 -1, word::fibonacci_number(i-1) as u64 -2];
         let mut text = word::fibonacci_word(i);

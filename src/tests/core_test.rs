@@ -1,11 +1,11 @@
 #[allow(dead_code)] extern crate env_logger;
 #[macro_use] extern crate more_asserts;
-#[allow(dead_code)] mod io;
-#[allow(dead_code)] mod core;
 
-mod fibonacci;
+use stringology::core;
+use stringology::word;
+
 extern crate log;
-use log::{debug};
+use log::debug;
 
 #[test]
 fn test_duval() {
@@ -29,11 +29,11 @@ fn test_duval() {
     }
 }
 
+/// only for even (counting starts at zero!) Fibonacci words, we have the property that the BWT has exactly two runs. See https://dx.doi.org/10.1007/978-3-319-23660-5_12
 #[test]
 fn test_bwt_from_text_by_sa() {
     for i in 1..8 {
-        //@ only for uneven (counting starts at one) Fibonacci words, we have the property that the BWT has exactly two runs. See https://dx.doi.org/10.1007/978-3-319-23660-5_12
-        let text = fibonacci::fibonacci(2*i+1); 
+        let text = word::fibonacci_word(2*i); 
         let bwt = core::bwt_from_text_by_sa(&text);
         let runs = core::number_of_runs(&mut bwt.as_slice());
         assert_eq!(runs, 2);

@@ -419,6 +419,8 @@ pub fn binary_debruijn_word(k : u8) -> Vec<u8> {
     }
 }
 
+/// The k-th binary de-Brujin sequence has a length of 2^{k+1}, and each substring of length k+1 is
+/// has a nuique occurrence
 #[test]
 fn test_binary_debrujin_word() {
     use std::str;
@@ -426,8 +428,8 @@ fn test_binary_debrujin_word() {
     for k in 2..10 {
         let word = binary_debruijn_word(k);
         let text = str::from_utf8(&word).unwrap();
-        for pos in 0..word.len()-k {
-            let pattern = str::from_utf8(&word[pos..pos+k]).unwrap();
+        for pos in 0..word.len()-k as usize {
+            let pattern = str::from_utf8(&word[pos..pos+1+k as usize]).unwrap();
             assert!(text[pos+1..].find(pattern) == None);
         }
     }
