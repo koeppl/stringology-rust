@@ -1,7 +1,7 @@
 extern crate env_logger;
 
-#[allow(dead_code)] mod io;
-mod core;
+use stringology::core;
+use stringology::io;
 
 extern crate log;
 use log::info;

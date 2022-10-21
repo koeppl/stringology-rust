@@ -1,10 +1,9 @@
-extern crate byte_string;
+// extern crate byte_string;
 extern crate env_logger;
 #[macro_use] extern crate more_asserts;
 
-#[allow(dead_code)] mod core;
-#[allow(dead_code)] mod io;
-#[allow(dead_code)] mod fibonacci;
+use stringology::core;
+use stringology::io;
 
 pub fn rle_text<R : std::io::Read, W: std::io::Write>(mut reader : &mut R, writer : &mut W) {
     match io::read_char(&mut reader) {

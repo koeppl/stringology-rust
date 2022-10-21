@@ -520,6 +520,7 @@ impl<'a, C : Eq + Copy + Clone> Iterator for ConjugateIterator<'a, C> {
 
 
 
+
 /// counts the number of runs in an array `arr`
 pub fn number_of_runs<R : std::io::Read>(reader : &mut R) -> usize {
     match io::read_char(reader) {
@@ -559,3 +560,5 @@ pub fn get_filename(o : &Option<String>) -> &str {
 	Some(s) => s
     }
 }
+
+

@@ -1,5 +1,5 @@
-#[allow(dead_code)] mod io;
-#[allow(dead_code)] mod core;
+use stringology::core;
+use stringology::io;
 #[macro_use] extern crate more_asserts;
 use std::thread;
 

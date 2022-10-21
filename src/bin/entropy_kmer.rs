@@ -2,8 +2,8 @@ extern crate cdivsufsort;
 extern crate env_logger;
 #[macro_use] extern crate more_asserts;
 
-#[allow(dead_code)] mod io;
-mod core;
+use stringology::core;
+use stringology::io;
 
 use std::collections::HashMap;
 

@@ -3,9 +3,8 @@ extern crate log;
 extern crate succinct;
 use log::{debug, log_enabled, info, Level};
 
-mod core;
-mod io;
-mod fibonacci;
+use stringology::core;
+use stringology::io;
 
 use std::cell::RefCell;
 
@@ -251,7 +250,12 @@ fn main() {
 
 }
 
-mod perioddoubling;
+
+#[cfg(test)]
+mod tests {
+use super::*;
+use stringology::word;
+
 
 /// Period Doubling Sequences have a string attractor of length 2.
 /// Ref:
@@ -260,7 +264,7 @@ mod perioddoubling;
 #[test]
 fn test_period_doubling() {
     for i in 5..16 {
-        let mut text = perioddoubling::period_doubling_sequence(i);
+        let mut text = word::period_doubling_word(i);
         let attractor = [3 * (1<<(i-4)) - 1, 3 * (1<<(i-3)) - 1];
         println!("len={} -> attr = {:?}", text.len(), attractor);
         text.push(0u8);
@@ -278,9 +282,11 @@ fn test_period_doubling() {
 #[test]
 fn test_fibonacci_attractor() {
     for i in 3..16 {
-        let attractor = [fibonacci::fibonacci_number(i-1) as u64 -1, fibonacci::fibonacci_number(i-1) as u64 -2];
-        let mut text = fibonacci::fibonacci(i);
+        let attractor = [word::fibonacci_number(i-1) as u64 -1, word::fibonacci_number(i-1) as u64 -2];
+        let mut text = word::fibonacci_word(i);
         text.push(0u8);
         assert!(is_attractor(text.as_slice(), &attractor));
     }
+}
+
 }

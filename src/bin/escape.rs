@@ -7,12 +7,11 @@ use std::collections::HashMap;
 extern crate log;
 use log::info;
 
-mod core;
+use stringology::core;
+use stringology::io;
 
-#[allow(dead_code)] mod io;
 
-
-use std::io::prelude::*;
+// use std::io::prelude::*;
 
 
 extern crate clap;

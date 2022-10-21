@@ -1,9 +1,9 @@
 extern crate env_logger;
-#[allow(dead_code)] mod io;
+use stringology::io;
 
 use rand::Rng;
 use rand::distributions::Alphanumeric;
-mod core;
+use stringology::core;
 
 
 extern crate clap;

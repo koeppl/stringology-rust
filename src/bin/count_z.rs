@@ -4,8 +4,8 @@ extern crate num;
 use segment_tree::SegmentPoint;
 use segment_tree::ops::Min;
 
-#[allow(dead_code)] mod core;
-#[allow(dead_code)] mod io;
+use stringology::core;
+use stringology::io;
 
 extern crate cdivsufsort;
 extern crate env_logger;

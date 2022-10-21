@@ -2,8 +2,8 @@ extern crate byte_string;
 extern crate env_logger;
 #[macro_use] extern crate more_asserts;
 
-#[allow(dead_code)] mod core;
-#[allow(dead_code)] mod io;
+use stringology::core;
+use stringology::io;
 
 
 pub fn mtf<R : std::io::Read, W: std::io::Write>(mut reader : &mut R, writer : &mut W) {

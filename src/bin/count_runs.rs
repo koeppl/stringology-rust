@@ -2,14 +2,15 @@ extern crate byte_string;
 extern crate env_logger;
 // #[macro_use] extern crate more_asserts;
 
-#[allow(dead_code)] mod core;
-#[allow(dead_code)] mod io;
+use stringology::core;
+use stringology::io;
 
 extern crate clap;
 use clap::Parser;
 /// computes the number of character runs in a text
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
+
 struct Args {
    /// the input file to read (otherwise read from stdin)
    #[arg(short, long)]

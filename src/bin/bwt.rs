@@ -5,8 +5,8 @@ extern crate env_logger;
 extern crate log;
 use log::info;
 
-#[allow(dead_code)] mod core;
-#[allow(dead_code)] mod io;
+use stringology::core;
+use stringology::io;
 
 extern crate clap;
 use clap::Parser;
