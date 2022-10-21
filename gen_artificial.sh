@@ -6,12 +6,13 @@ function die {
 
 [[ $# -eq 1 ]] || die "Usage: $0 [output-folder]"
 folder="$1"
+mkdir -p "$folder"
 [[ -d "$folder" ]] || die "Folder $folder not accessible!"
 
-for i in $(seq -f "%02.f" 0 20); do 
-	cargo run --bin fibonacci --  "$i" >! "$folder/fibonacci.$i"
-	cargo run --bin paperfolding -- -n "$i" >! "$folder/paperfold.$i"
-	cargo run --bin paperfolding -q -- -n "$i" >! "$folder/paperfold.q.$i"
-	cargo run --bin thuemorse -- "$i" >! "$folder/thuemorse.$i"
-	cargo run --bin perioddoubling --  "$i" >! "$folder/perioddoubling.$i"
+set -x
+set -e
+for k in $(seq -f "%02.f" 0 20); do 
+	for name in tribonacci fibonacci kolakoski thue-morse period-doubling paper-folding quaternary-paper-folding binary-de-brujin power2; do
+		cargo run --bin word -- -n "$name" -k "$k" > "$folder/$name.$k"
+	done
 done

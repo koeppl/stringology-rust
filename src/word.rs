@@ -16,8 +16,6 @@ pub fn fibonacci_number(k: u8) -> usize {
 	}
 
 	let [mut sum, mut cur, mut old] = [1,1,0];
-	// let mut last = 0;
-	// let mut curr = 1;
 	for _ in 0..k+1 {
         sum = cur + old;
         old = cur;
@@ -70,7 +68,7 @@ pub fn fibonacci_word(k : u8) -> Vec<u8> {
 }
 
 #[test]
-fn test_fibonacci() {
+fn test_fibonacci_word() {
     assert_eq!(b"a"                     , fibonacci_word(0).as_slice());
     assert_eq!(b"ab"                    , fibonacci_word(1).as_slice());
     assert_eq!(b"aba"                   , fibonacci_word(2).as_slice());
@@ -103,18 +101,18 @@ fn test_fibonacci_number() {
 /// It uses the fact that 
 /// a) TM_k = TM_k-1 \bar{TM_k-1}
 /// b) TM_k is a prefix of TM_{k+1}
-pub fn thuemorse_word(i : u8) -> Vec<u8> {
-    let n = 1<<i;
-    let mut str : Vec<u8> = Vec::with_capacity(n);
-    unsafe { str.set_len(n); }
-    str[0] = CHR_A;
-    for j in 0..i {
+pub fn thuemorse_word(k : u8) -> Vec<u8> {
+    let n = 1<<k;
+    let mut text : Vec<u8> = Vec::with_capacity(n);
+    unsafe { text.set_len(n); }
+    text[0] = CHR_A;
+    for j in 0..k {
         let powerj = 1<<j;
         for k in 0..powerj {
-            str[powerj+k] = if str[k] == CHR_A { CHR_B } else { CHR_A }; 
+            text[powerj+k] = if text[k] == CHR_A { CHR_B } else { CHR_A }; 
         }
     }
-    return str
+    return text
 }
 
 #[test]
@@ -211,7 +209,17 @@ pub fn thuemorse_morphism(c : u8) -> &'static[u8] {
     }
 }
 
-fn iterate_morphism(rounds : u8, morphism: fn(u8) -> &'static[u8]) -> Vec<u8> {
+pub fn fibonacci_morphism(c : u8) -> &'static[u8] {
+    match c {
+        CHR_A => STR_AB,
+        _ => &[CHR_A],
+    }
+}
+
+/// only works when the morphism is a 2-morphism, meaning that it always maps a character to a
+/// string of length two
+/// we assume that morphism(a) has a as a prefix. 
+fn iterate_2morphism(rounds : u8, morphism: fn(u8) -> &'static[u8]) -> Vec<u8> {
     if rounds == 0 {
         return vec!(CHR_A);
     }
@@ -233,25 +241,59 @@ fn iterate_morphism(rounds : u8, morphism: fn(u8) -> &'static[u8]) -> Vec<u8> {
     return text
 }
 
+/// we assume that morphism(a) has a as a prefix. 
+/// if sizehint > 0, we assume that the sequence to compute fits into this size
+fn iterate_general_morphism(rounds : u8, morphism: fn(u8) -> &'static[u8], sizehint : usize) -> Vec<u8> {
+    if rounds == 0 {
+        return vec!(CHR_A);
+    }
+    let mut text : Vec<u8> = Vec::with_capacity(if sizehint > 0 { sizehint } else { 1<<rounds });
+    let mut round = 1;
+    let mut end_last_round = 1;
+    for c in morphism(CHR_A) {
+        text.push(*c);
+    }
+    let mut source_pos = 1;
+    while round < rounds {
+        for c in morphism(text[source_pos]) {
+            text.push(*c);
+        }
+        // println!("text={:?} source_pos={} morphism={:?} round={} end_last_round={}", text, source_pos, morphism(text[source_pos]), round, end_last_round);
+        if source_pos == end_last_round {
+            round += 1;
+            end_last_round = text.len()-1;
+        }
+        source_pos += 1;
+    }
+    return text
+}
+
 pub fn period_doubling_word(k : u8) -> Vec<u8> {
-    iterate_morphism(k, period_doubling_morphism)
+    iterate_2morphism(k, period_doubling_morphism)
 }
 
 #[test]
 fn test_thue_morse_morphism() {
     for k in 0..10 {
-        assert_eq!(thuemorse_word(k), iterate_morphism(k, thuemorse_morphism).as_slice());
+        assert_eq!(thuemorse_word(k), iterate_2morphism(k, thuemorse_morphism).as_slice());
+    }
+}
+
+#[test]
+fn test_fibonacci_morphism() {
+    for k in 0..10 {
+        assert_eq!(fibonacci_word(k), iterate_general_morphism(k, fibonacci_morphism, fibonacci_number(k)).as_slice());
     }
 }
 
 #[test]
 fn test_perioddoubling() {
-    assert_eq!(b"a"                                , iterate_morphism(0 , period_doubling_morphism).as_slice());
-    assert_eq!(b"ab"                               , iterate_morphism(1 , period_doubling_morphism).as_slice());
-    assert_eq!(b"abaa"                             , iterate_morphism(2 , period_doubling_morphism).as_slice());
-    assert_eq!(b"abaaabab"                         , iterate_morphism(3 , period_doubling_morphism).as_slice());
-    assert_eq!(b"abaaabababaaabaa"                 , iterate_morphism(4 , period_doubling_morphism).as_slice());
-    assert_eq!(b"abaaabababaaabaaabaaabababaaabab" , iterate_morphism(5 , period_doubling_morphism).as_slice());
+    assert_eq!(b"a"                                , iterate_2morphism(0 , period_doubling_morphism).as_slice());
+    assert_eq!(b"ab"                               , iterate_2morphism(1 , period_doubling_morphism).as_slice());
+    assert_eq!(b"abaa"                             , iterate_2morphism(2 , period_doubling_morphism).as_slice());
+    assert_eq!(b"abaaabab"                         , iterate_2morphism(3 , period_doubling_morphism).as_slice());
+    assert_eq!(b"abaaabababaaabaa"                 , iterate_2morphism(4 , period_doubling_morphism).as_slice());
+    assert_eq!(b"abaaabababaaabaaabaaabababaaabab" , iterate_2morphism(5 , period_doubling_morphism).as_slice());
 }
 
 
@@ -436,3 +478,123 @@ fn test_binary_debrujin_word() {
 }
 
 
+
+/// characteristic sequence c of the powers of 2
+/// https://arxiv.org/pdf/2206.00376.pdf
+/// https://arxiv.org/pdf/2012.06840.pdf
+/// resembles https://oeis.org/A267366
+pub fn power2_sequence(k : u8) -> Vec<u8> {
+    let n = 1<<k;
+    let mut text : Vec<u8> = Vec::with_capacity(n);
+    unsafe { text.set_len(n); }
+    let mut most_significant_bit = 0;
+    for j in 1..n {
+        while j > 1<<(most_significant_bit+1) {
+            most_significant_bit += 1;
+        }
+        if j & ((1<<most_significant_bit)-1) > 0{
+            text[j-1] = CHR_A;
+        } else {
+            text[j-1] = CHR_B;
+        }
+    }
+    text
+}
+
+
+//
+// /// Computes the k-th tribonacci word
+// /// https://oeis.org/A080843
+// pub fn tribonacci_word(k : u8) -> Vec<u8> {
+//     let length = (tribonacci_number_estimate(k+2)+1.0) as usize + 1;
+//     let mut text : Vec<u8> = Vec::with_capacity(length);
+//     unsafe { text.set_len(length); }
+//     info!("allocate text length = {}", length);
+//     text[0] = CHR_A;
+//
+//     let mut previous_tribonacci_number = 0;
+//     let mut current_tribonacci_number = 1; //@ stores in the end the k-th tribonacci number
+//     let mut source = 0; //@ pointer in `text` where to read the next input character
+//     let mut target = 1; //@ pointer in text where to write the next output character
+//
+//     for _ in 0..k+1 { //@ counts for each tribonacci number
+//         let new_tribonacci_number = current_tribonacci_number + previous_tribonacci_number;
+//         while target < new_tribonacci_number {
+//             if text[source] == CHR_A {
+//                 text[target] = CHR_B;
+//                 text[target+1] = CHR_A;
+//                 target += 2;
+//             } else {
+//                 text[target] = CHR_A;
+//                 target += 1;
+//             }
+//             source += 1;
+//         }
+//         previous_tribonacci_number = current_tribonacci_number;
+//         current_tribonacci_number = new_tribonacci_number;
+//         info!("{}", current_tribonacci_number);
+//     }
+//     info!("{}-th tribonacci number = {}", k, current_tribonacci_number);
+//     info!("written characters = {}", target);
+//     text.truncate(current_tribonacci_number);
+//     return text
+// }
+
+static STR_AC: &'static [u8] = &[CHR_A, CHR_C];
+
+pub fn tribonacci_morphism(c : u8) -> &'static[u8] {
+    match c {
+        CHR_A => STR_AB,
+        CHR_B => STR_AC,
+        _ => &[CHR_A],
+    }
+}
+
+pub fn tribonacci_word(k : u8) -> Vec<u8> {
+    iterate_general_morphism(k, tribonacci_morphism, tribonacci_number(k))
+}
+
+
+#[test]
+fn test_tribonacci() {
+    assert_eq!(b"a"                     , tribonacci_word(0).as_slice());
+    assert_eq!(b"ab"                    , tribonacci_word(1).as_slice());
+    assert_eq!(b"abac"                   , tribonacci_word(2).as_slice());
+    assert_eq!(b"abacaba"                 , tribonacci_word(3).as_slice());
+    assert_eq!(b"abacabaabacab"              , tribonacci_word(4).as_slice());
+    assert_eq!(b"abacabaabacababacabaabac"         , tribonacci_word(5).as_slice());
+    assert_eq!(b"abacabaabacababacabaabacabacabaabacababacaba" , tribonacci_word(6).as_slice());
+}
+
+pub fn tribonacci_number(k: u8) -> usize {
+	if k == 0 {
+		return 1;
+	}
+
+	let [mut sum, mut cur, mut old, mut ancient] = [0,1,1,0];
+	for _ in 0..k {
+        sum = cur + old + ancient;
+        ancient = old;
+        old = cur;
+        cur = sum;
+	}
+	sum
+}
+
+#[test]
+fn test_tribonacci_number() {
+    assert_eq!( 1  , tribonacci_number(0));
+    assert_eq!( 2  , tribonacci_number(1));
+    assert_eq!( 4  , tribonacci_number(2));
+    assert_eq!( 7  , tribonacci_number(3));
+    assert_eq!( 13  , tribonacci_number(4));
+    assert_eq!( 24 , tribonacci_number(5));
+    assert_eq!( 44 , tribonacci_number(6));
+    assert_eq!( 81, tribonacci_number(7));
+    assert_eq!( 149 , tribonacci_number(8));
+    assert_eq!( 274, tribonacci_number(9));
+    assert_eq!( 504, tribonacci_number(10));
+    for k in 0..16 {
+        assert_eq!(tribonacci_word(k).len(), tribonacci_number(k));
+    }
+}

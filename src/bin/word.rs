@@ -25,12 +25,14 @@ struct Args {
 #[derive(clap::ValueEnum, Clone, Debug)]
 enum WordName {
     Fibonacci,
+    Tribonacci,
     Kolakoski,
     ThueMorse,
     PeriodDoubling,
     PaperFolding,
     QuaternaryPaperFolding,
     BinaryDeBrujin,
+    Power2,
 }
 
 
@@ -40,12 +42,14 @@ fn main() {
 
     let fun = match args.name {
         WordName::Fibonacci => word::fibonacci_word,
+        WordName::Tribonacci => word::tribonacci_word,
         WordName::Kolakoski => word::kolakoski_word,
         WordName::ThueMorse => word::thuemorse_word,
         WordName::PeriodDoubling => word::period_doubling_word,
         WordName::PaperFolding => word::paperfolding_word,
         WordName::QuaternaryPaperFolding => word::quaternary_paperfolding_word,
         WordName::BinaryDeBrujin => word::binary_debruijn_word,
+        WordName::Power2 => word::power2_sequence
     };
     writer.write(fun(args.k).as_slice()).unwrap();
 
