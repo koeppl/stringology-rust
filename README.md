@@ -9,7 +9,7 @@ It currently consists of
    - `count_z` : counts the number of overlapping LZ77 factors
    - `entropy` : counts the k-th order empirical entropy
    - `entropykmer` : counts the k-th order empirical entropy via k-mers, `k \in [1..7]`
- - generators
+ - word generators with program `word`
    - `thuemorse` : computes the n-th [Thue-Morse word](https://oeis.org/A010060)
    - `fibonacci` : computes the n-th [Fibonacci word](https://oeis.org/A003849)
    - `perioddoubling` computes the n-th [period-doubling sequence](https://oeis.org/A096268)
@@ -26,8 +26,9 @@ cargo build
 cargo run --bin count_sigma -- --file ./data/tudocomp/einstein.en.txt
 ```
 
+compute the 5th Fibonacci word
 ```
-cargo run --bin fibonacci 5
+cargo run --bin word -- -n fibonacci -k 5
 ```
 
 

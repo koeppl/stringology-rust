@@ -9,7 +9,6 @@ const SQRT_5 : f64 = 2.23606797749978969641; //(5.0 as f64).sqrt();
 const GOLDEN_RATIO : f64 = (1.0 + SQRT_5)/2.0;
 const PSI : f64 = - 1.0/GOLDEN_RATIO;
 
-
 pub fn fibonacci_number(k: u8) -> usize {
 	if k == 0 {
 		return 1;
@@ -249,10 +248,10 @@ fn iterate_general_morphism(rounds : u8, morphism: fn(u8) -> &'static[u8], sizeh
     }
     let mut text : Vec<u8> = Vec::with_capacity(if sizehint > 0 { sizehint } else { 1<<rounds });
     let mut round = 1;
-    let mut end_last_round = 1;
     for c in morphism(CHR_A) {
         text.push(*c);
     }
+    let mut end_last_round = text.len()-1;
     let mut source_pos = 1;
     while round < rounds {
         for c in morphism(text[source_pos]) {
@@ -482,6 +481,7 @@ fn test_binary_debrujin_word() {
 /// characteristic sequence c of the powers of 2
 /// https://arxiv.org/pdf/2206.00376.pdf
 /// https://arxiv.org/pdf/2012.06840.pdf
+/// is https://oeis.org/A209229 and
 /// resembles https://oeis.org/A267366
 pub fn power2_sequence(k : u8) -> Vec<u8> {
     let n = 1<<k;
@@ -500,45 +500,6 @@ pub fn power2_sequence(k : u8) -> Vec<u8> {
     }
     text
 }
-
-
-//
-// /// Computes the k-th tribonacci word
-// /// https://oeis.org/A080843
-// pub fn tribonacci_word(k : u8) -> Vec<u8> {
-//     let length = (tribonacci_number_estimate(k+2)+1.0) as usize + 1;
-//     let mut text : Vec<u8> = Vec::with_capacity(length);
-//     unsafe { text.set_len(length); }
-//     info!("allocate text length = {}", length);
-//     text[0] = CHR_A;
-//
-//     let mut previous_tribonacci_number = 0;
-//     let mut current_tribonacci_number = 1; //@ stores in the end the k-th tribonacci number
-//     let mut source = 0; //@ pointer in `text` where to read the next input character
-//     let mut target = 1; //@ pointer in text where to write the next output character
-//
-//     for _ in 0..k+1 { //@ counts for each tribonacci number
-//         let new_tribonacci_number = current_tribonacci_number + previous_tribonacci_number;
-//         while target < new_tribonacci_number {
-//             if text[source] == CHR_A {
-//                 text[target] = CHR_B;
-//                 text[target+1] = CHR_A;
-//                 target += 2;
-//             } else {
-//                 text[target] = CHR_A;
-//                 target += 1;
-//             }
-//             source += 1;
-//         }
-//         previous_tribonacci_number = current_tribonacci_number;
-//         current_tribonacci_number = new_tribonacci_number;
-//         info!("{}", current_tribonacci_number);
-//     }
-//     info!("{}-th tribonacci number = {}", k, current_tribonacci_number);
-//     info!("written characters = {}", target);
-//     text.truncate(current_tribonacci_number);
-//     return text
-// }
 
 static STR_AC: &'static [u8] = &[CHR_A, CHR_C];
 
@@ -598,3 +559,31 @@ fn test_tribonacci_number() {
         assert_eq!(tribonacci_word(k).len(), tribonacci_number(k));
     }
 }
+
+
+
+static STR_ABC: &'static [u8] = &[CHR_A, CHR_B, CHR_C];
+pub fn vtm_morphism(c : u8) -> &'static[u8] {
+    match c {
+        CHR_A => STR_ABC,
+        CHR_B => STR_AC,
+        _ => &[CHR_B],
+    }
+}
+
+/// A Thue-Morse variant studied in
+/// Francine Blanchet-Sadri, James D. Currie, Narad Rampersad, Nathan Fox:
+/// Abelian Complexity of Fixed Point of Morphism 0 ↦ 012, 1 ↦ 02, 2 ↦ 1. Integers 14: A11 (2014)
+pub fn vtm_word(k : u8) -> Vec<u8> {
+    iterate_general_morphism(k, vtm_morphism, (1+(3*1<<(k))) as usize)
+}
+
+#[test]
+fn test_vtm() {
+    // assert_eq!(b"a"                     , vtm_word(0).as_slice());
+    // assert_eq!(b"abc"                    , vtm_word(1).as_slice());
+    assert_eq!(b"abcacb"                   , vtm_word(2).as_slice());
+    assert_eq!(b"abcacbabcbac"                 , vtm_word(3).as_slice());
+    assert_eq!(b"abcacbabcbacabcacbacabcb"              , vtm_word(4).as_slice());
+}
+
