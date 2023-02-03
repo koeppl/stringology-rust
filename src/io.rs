@@ -6,11 +6,11 @@ pub fn file2byte_vector(filename: &str, prefix_length: usize) -> Vec<u8> {
 
     let path = std::path::Path::new(filename);
     let mut f = fs::File::open(&path).expect("no file found");
-    let metadata = fs::metadata(&path).expect("unable to read metadata");
+    let metadata = fs::metadata(path).expect("unable to read metadata");
     let buffer_length = if prefix_length > 0 {
         std::cmp::min(prefix_length as u64, metadata.len())
     } else {
-        metadata.len() as u64
+        metadata.len()
     };
     assert!(buffer_length <= std::usize::MAX as u64);
     let mut buffer = Vec::new();
@@ -53,7 +53,7 @@ pub fn stream_or_stdin(filename: Option<&str>) -> Box<dyn std::io::Read> {
         Some(filename) => {
             // info!("filename: {}", filename);
             let path = std::path::Path::new(filename);
-            Box::new(std::io::BufReader::new(std::fs::File::open(&path).unwrap()))
+            Box::new(std::io::BufReader::new(std::fs::File::open(path).unwrap()))
                 as Box<dyn std::io::Read>
         }
         None => Box::new(std::io::stdin()) as Box<dyn std::io::Read>,
@@ -66,7 +66,7 @@ pub fn stream_or_stdout(filename: Option<&str>) -> Box<dyn std::io::Write> {
         Some(filename) => {
             // info!("filename: {}", filename);
             let path = std::path::Path::new(filename);
-            Box::new(std::fs::File::create(&path).unwrap()) as Box<dyn std::io::Write>
+            Box::new(std::fs::File::create(path).unwrap()) as Box<dyn std::io::Write>
         }
         None => Box::new(std::io::stdout()) as Box<dyn std::io::Write>,
     }

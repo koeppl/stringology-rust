@@ -198,7 +198,7 @@ pub fn bwt_from_sa<C: Clone + Copy>(text: &[C], sa: &[usize]) -> Vec<C> {
     let n = text.len();
     let mut bwt = vec![text[0]; n];
     for i in 0..n {
-        bwt[i] = text[(n + (sa[i] as usize) - 1) % n];
+        bwt[i] = text[(n + sa[i] - 1) % n];
     }
     bwt
 }
@@ -237,16 +237,16 @@ pub fn bit_size(i: usize) -> u8 {
 pub fn compute_phi<T: AsPrimitive<usize> + num::cast::FromPrimitive>(sa: &[T]) -> Vec<T> {
     let mut phi = vec![T::from_usize(0).unwrap(); sa.len()];
     for i in 1..sa.len() {
-        phi[sa[i].as_() as usize] = sa[i - 1];
+        phi[sa[i].as_()] = sa[i - 1];
     }
-    phi[sa[0].as_() as usize] = sa[sa.len() - 1];
+    phi[sa[0].as_()] = sa[sa.len() - 1];
     phi
 }
 
 pub fn inverse_permutation<T: AsPrimitive<usize> + num::cast::FromPrimitive>(arr: &[T]) -> Vec<T> {
     let mut inv = vec![T::from_usize(0).unwrap(); arr.len()];
     for i in 0..arr.len() {
-        inv[arr[i].as_() as usize] = T::from_usize(i).unwrap();
+        inv[arr[i].as_()] = T::from_usize(i).unwrap();
     }
     inv
 }
@@ -261,14 +261,12 @@ pub fn compute_plcp(text: &[u8], phi: &[i32]) -> Vec<u32> {
         //@ unique delimiter such as 0-byte
         while position_a + length < text.len()
             && position_b + length < text.len()
-            && text[(position_a + length) as usize] == text[(position_b + length) as usize]
+            && text[position_a + length] == text[position_b + length]
         {
             length += 1;
         }
         plcp[position_b] = length as u32;
-        if length > 0 {
-            length -= 1;
-        }
+        length = length.saturating_sub(1);
     }
     plcp
 }
@@ -280,7 +278,7 @@ pub fn compute_lcp<T: AsPrimitive<usize> + num::cast::FromPrimitive>(
     debug_assert_eq!(plcp.len(), sa.len());
     let mut lcp = vec![0; plcp.len()];
     for i in 0..lcp.len() {
-        lcp[i] = plcp[sa[i].as_() as usize]
+        lcp[i] = plcp[sa[i].as_()]
     }
     lcp
 }
