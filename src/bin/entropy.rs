@@ -5,7 +5,7 @@ extern crate env_logger;
 use stringology::core;
 use stringology::io;
 
-#[macro_use] extern crate approx;
+#[cfg(test)] #[macro_use] extern crate approx;
 
 
 extern crate log;
@@ -36,20 +36,20 @@ fn kth_order_entropy(text : &[u8], k : usize) -> f64 {
     assert_gt!(k, 0);
     let sa = { 
         let mut sa = vec![0; text.len()];
-        assert!(!text[..text.len()-1].into_iter().any(|&x| x == 0));
-        cdivsufsort::sort_in_place(&text, sa.as_mut_slice());
+        assert!(!text[..text.len()-1].iter().any(|&x| x == 0));
+        cdivsufsort::sort_in_place(text, sa.as_mut_slice());
         sa
     };
     let lcp = {
-        let phi = core::compute_phi(&sa.as_slice());
-        let plcp = core::compute_plcp(&text, &phi.as_slice());
-        core::compute_lcp(&plcp.as_slice(), &sa.as_slice())
+        let phi = core::compute_phi(sa.as_slice());
+        let plcp = core::compute_plcp(text, phi.as_slice());
+        core::compute_lcp(plcp.as_slice(), sa.as_slice())
     };
     
     let compute_context = |start : usize, length : usize| -> f64 {
         let mut v : Vec<u8> = Vec::with_capacity(length);
-        for i in start..start+length {
-            let pos = sa[i] as usize + k;
+        for savalue in sa.iter().skip(start).take(length) {
+            let pos = *savalue as usize + k;
             if pos < text.len() { //@ for binary texts having 0 byte the 0 byte at the end can be matched with it!
                 v.push(text[pos]);
             }
@@ -59,14 +59,14 @@ fn kth_order_entropy(text : &[u8], k : usize) -> f64 {
 
     let mut sum = 0 as f64;
     let mut contextcount : usize = 0;
-    for lcpindex in 0..lcp.len() {
-        if contextcount > 0 && (lcp[lcpindex] as usize) < k {
+    for (lcpindex, lcpvalue) in lcp.iter().enumerate() {
+        if contextcount > 0 && (*lcpvalue as usize) < k {
             assert_gt!(lcpindex, 0);
             sum += compute_context(lcpindex-contextcount-1, contextcount+1);
             contextcount = 0;
             continue;
         }
-        if (lcp[lcpindex] as usize) >= k {
+        if (*lcpvalue as usize) >= k {
             contextcount += 1;
         }
     }

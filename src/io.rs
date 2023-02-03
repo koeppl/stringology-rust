@@ -28,7 +28,7 @@ pub fn stdin2byte_vector(prefix_length : usize) -> Vec<u8> {
     // let reader = stdin.lock();
     if prefix_length > 0 {
         let mut buffer = vec![0; prefix_length];
-        reader.read(&mut buffer.as_mut_slice()).unwrap();
+        reader.read_exact(buffer.as_mut_slice()).unwrap();
         buffer
     } else {
         let mut buffer = Vec::new();

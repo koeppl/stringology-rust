@@ -9,8 +9,8 @@ fn main() {
         for num in 0..usize::pow(alphabet_size, length as u32) {
             let mut text = vec![b'a'; length];
             let mut remainder = num;
-            for i in 0..text.len() {
-                text[i] = b'a' + ((remainder%alphabet_size) as u8);
+            for letter in &mut text {
+                *letter = b'a' + ((remainder%alphabet_size) as u8);
                 remainder /= alphabet_size;
             }
             s.yield_(text);

@@ -83,7 +83,7 @@ fn main() {
 		cdivsufsort::sort_in_place(&text, sa.as_mut_slice());
 		sa
 	    };
-	    let isa = core::inverse_permutation(&sa.as_slice());
+	    let isa = core::inverse_permutation(sa.as_slice());
 	    debug_assert_eq!(factors, core::isa_lyndon_factorization(&isa));
 	}
     }

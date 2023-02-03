@@ -1,7 +1,7 @@
 #[macro_use] extern crate more_asserts;
 extern crate log;
 extern crate succinct;
-use log::{debug, log_enabled, info, Level};
+use log::info;
 
 use stringology::core;
 use stringology::io;
@@ -25,6 +25,7 @@ use std::rc::Rc;
 #[derive(Debug)]
 struct SuffixEdge {
     parent : Rc<RefCell<LCPInterval>>,
+    #[allow(dead_code)]
     label : u8,
     child : Rc<RefCell<LCPInterval>>,
 }
@@ -40,7 +41,7 @@ fn lcp_intervals(text: &[u8], sa :&[i32], lcp: &[u32]) -> Vec<SuffixEdge> {
     let mut lcpintervals = vec![
         Rc::new(RefCell::new( LCPInterval { depth : 0, begin : 0, end: (n-1) as u32} )), 
         Rc::new(RefCell::new( LCPInterval { depth : n as u32 - (sa[0] as u32) - 1, begin : 0, end : 0 } ))];
-    let mut path = vec![Rc::clone(&mut lcpintervals[0]), Rc::clone(&mut lcpintervals[1])];
+    let mut path = vec![Rc::clone(&lcpintervals[0]), Rc::clone(&lcpintervals[1])];
     // let mut leaf = lcpintervals.last().unwrap();
 
     let mut edges = Vec::new();
@@ -54,7 +55,7 @@ fn lcp_intervals(text: &[u8], sa :&[i32], lcp: &[u32]) -> Vec<SuffixEdge> {
 
             if let Some(child) = &child_ptr {
                 let label = text[sa[child.borrow().begin as usize] as usize + (*node_ref).depth as usize];
-                edges.push( SuffixEdge { parent : Rc::clone(&node), label, child : Rc::clone(&child) });
+                edges.push( SuffixEdge { parent : Rc::clone(&node), label, child : Rc::clone(child) });
             }
             child_ptr = Some(Rc::clone(&node));
         }
@@ -68,10 +69,10 @@ fn lcp_intervals(text: &[u8], sa :&[i32], lcp: &[u32]) -> Vec<SuffixEdge> {
                 path.push(Rc::clone(lcpintervals.last().unwrap()));
             }
         }
-        if child_ptr.is_some() {
-            let child  = Rc::clone(&child_ptr.unwrap());
+        if let Some(child_rc) = child_ptr {
+            let child  = Rc::clone(&child_rc);
             let label = text[sa[child.borrow().begin as usize] as usize + path.last().unwrap().borrow().depth as usize];
-            edges.push( SuffixEdge { parent : Rc::clone(&path.last().unwrap()), label, child });
+            edges.push( SuffixEdge { parent : Rc::clone(path.last().unwrap()), label, child });
         }
         // create a new leaf for index i
         assert_lt!(sa[i] as u32 + n as u32 - (sa[i] as u32) - 1, n as u32);
@@ -147,16 +148,16 @@ fn is_attractor(text : &[u8], attractor: &[u64]) -> bool {
 
     let sa = { 
         let mut sa = vec![0; text.len()];
-        cdivsufsort::sort_in_place(&text, sa.as_mut_slice());
+        cdivsufsort::sort_in_place(text, sa.as_mut_slice());
         sa
     };
     // let isa = core::inverse_permutation(&sa.as_slice());
     let lcp = {
-        let phi = core::compute_phi(&sa.as_slice());
-        let plcp = core::compute_plcp(&text, &phi.as_slice());
-        core::compute_lcp(&plcp.as_slice(), &sa.as_slice())
+        let phi = core::compute_phi(sa.as_slice());
+        let plcp = core::compute_plcp(text, phi.as_slice());
+        core::compute_lcp(plcp.as_slice(), sa.as_slice())
     };
-    let suffix_edges = lcp_intervals(&text, &sa, &lcp);
+    let suffix_edges = lcp_intervals(text, &sa, &lcp);
     
 
     use succinct::*;
@@ -167,7 +168,7 @@ fn is_attractor(text : &[u8], attractor: &[u64]) -> bool {
 
     let attractor_positions = {
         let mut v = BitVector::with_fill(n as u64, false);
-        for s in attractor.into_iter() {
+        for s in attractor.iter() {
             v.set_bit(*s, true);
         }
         v
@@ -188,11 +189,11 @@ fn is_attractor(text : &[u8], attractor: &[u64]) -> bool {
     let mut arr_d = vec!(0; n);
     for i in 0..n {
         let text_position = sa[i] as u64;
-        if attractor_positions.get_bit(text_position as u64) == false {
+        if ! attractor_positions.get_bit(text_position as u64) {
             let successor_rank = rank.rank1(text_position as u64);
             match select.select1(successor_rank) {
                 Some(pos) =>  {
-                    assert!(attractor_positions.get_bit(pos) == true);
+                    assert!(attractor_positions.get_bit(pos));
                     arr_d[i] = pos - text_position as u64;
                 },
                 None => arr_d[i] = n as u64,

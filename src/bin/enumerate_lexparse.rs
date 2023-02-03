@@ -2,7 +2,6 @@
 extern crate num;
 
 use stringology::core;
-use stringology::io;
 
 extern crate cdivsufsort;
 extern crate env_logger;
@@ -11,6 +10,7 @@ extern crate log;
 use log::{debug, log_enabled, Level};
 
 
+#[allow(dead_code)]
 #[derive(Debug)]
 struct LZFactor {
     pos : u32,
@@ -49,8 +49,8 @@ fn main() {
         for num in 0..usize::pow(alphabet_size, length as u32) {
             let mut text = vec![b'a'; length];
             let mut remainder = num;
-            for i in 0..text.len() {
-                text[i] = b'a' + ((remainder%alphabet_size) as u8);
+            for letter in &mut text {
+                *letter = b'a' + ((remainder%alphabet_size) as u8);
                 remainder /= alphabet_size;
             }
             s.yield_(text);
@@ -65,15 +65,15 @@ fn main() {
         
         let mut list = Vec::new();
         let mut items = vec![b'a'; alphabet_size];
-        for i in 0..items.len() {
-            items[i] = b'a' + (i as u8);
+        for (i, item) in items.iter_mut().enumerate() {
+            *item = b'a' + (i as u8);
         }
         for perm in items.iter().permutations(items.len()).unique() {
             // println!("{}", str::from_utf8(perm.as_slice()).unwrap());
             //
             let mut char_map : HashMap<u8,u8> = HashMap::new();
-            for i in 0..perm.len() {
-                char_map.insert(b'a' + (i as u8), *perm[i]);
+            for (i, item) in perm.iter().enumerate() {
+                char_map.insert(b'a' + (i as u8), **item);
             }
             let mut text = origtext.clone();
             for i in 0..text.len()-1 {
@@ -88,8 +88,8 @@ fn main() {
                 debug!(" T : {:?}", text);
                 debug!("sa : {:?}", sa);
             }
-            let phi = core::compute_phi(&sa.as_slice());
-            let plcp = core::compute_plcp(&text.as_slice(), &phi.as_slice());
+            let phi = core::compute_phi(sa.as_slice());
+            let plcp = core::compute_plcp(text.as_slice(), phi.as_slice());
             let factors = compute_lexparse(&text, &plcp, &phi);
             list.push((factors.len(), text));
         }

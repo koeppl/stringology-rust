@@ -103,12 +103,12 @@ fn main() {
                     if cur_char == args.escape_symbol {
                         let next_char = io::read_char(&mut reader).unwrap();
                         if next_char == args.escape_symbol {
-                            writer.write(&[args.escape_symbol]).unwrap();
+                            writer.write_all(&[args.escape_symbol]).unwrap();
                             continue;
                         }
-                        writer.write(&[*revert_mapping.get(&next_char).unwrap()]).unwrap();
+                        writer.write_all(&[*revert_mapping.get(&next_char).unwrap()]).unwrap();
                     } else {
-                        writer.write(&[cur_char]).unwrap();
+                        writer.write_all(&[cur_char]).unwrap();
                     }
                 }
             }
@@ -126,12 +126,12 @@ fn main() {
                 Err(_) => break,
                 Ok(cur_char) => {
                     if cur_char == args.escape_symbol {
-                        writer.write(&[args.escape_symbol, args.escape_symbol]).unwrap();
+                        writer.write_all(&[args.escape_symbol, args.escape_symbol]).unwrap();
                         continue;
                     }
                     match char_mapping.get(&cur_char) {
-                        Some(remapped_char) => writer.write(&[args.escape_symbol, *remapped_char]),
-                        None => writer.write(&[cur_char]),
+                        Some(remapped_char) => writer.write_all(&[args.escape_symbol, *remapped_char]),
+                        None => writer.write_all(&[cur_char]),
                     }.unwrap();
                 }
             }

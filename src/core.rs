@@ -10,8 +10,8 @@ use more_asserts::assert_lt;
 pub fn bwt_from_text_by_sa(text: &Vec<u8>) -> Vec<u8> {
     let n = text.len();
     let mut sa = vec![0; n];
-    assert!(!text[..text.len()-1].into_iter().any(|&x| x == 0));
-    cdivsufsort::sort_in_place(&text, sa.as_mut_slice());
+    assert!(!text[..text.len()-1].iter().any(|&x| x == 0));
+    cdivsufsort::sort_in_place(text, sa.as_mut_slice());
     let mut bwt = vec![text[0]; n];
     // let mut rsa = vec![0; n];
     for i in 0..n {
@@ -40,7 +40,7 @@ pub fn bwt_by_matrix_naive<T : std::cmp::Ord + Copy>(text: &[T]) -> Vec<T> {
             }
             return cmp;
         }
-        return std::cmp::Ordering::Equal;
+        std::cmp::Ordering::Equal
     });
     let mut bwt = Vec::with_capacity(text.len());
     for i in 0..text.len() {
@@ -57,14 +57,14 @@ pub fn bwt_by_matrix(text: &[u8]) -> Vec<u8> {
    let n = text.len();
     assert_gt!(n, 0);
 
-    let conjugate_start = lyndon_conjugate(&text);
+    let conjugate_start = lyndon_conjugate(text);
     let mut newtext = Vec::new();
     newtext.reserve(n);
-    for i in conjugate_start..n {
-        newtext.push(text[i]);
+    for letter in text[conjugate_start..n].iter() {
+        newtext.push(*letter);
     }
-    for i in 0..conjugate_start {
-        newtext.push(text[i]);
+    for letter in text[0..conjugate_start].iter() {
+        newtext.push(*letter);
     }
     newtext.push(0u8);
     let mut bwt = bwt_from_text_by_sa(&newtext);
@@ -88,8 +88,7 @@ pub fn lyndon_conjugate<C : Ord + Copy + Clone>(text: &[C]) -> usize {
          return factors[x]+1;
       }
    }
-   assert!(false); //should never happen
-   return 0;
+   unreachable!(); //should never happen
 }
 
 /// a string is primitive if it is not the x-times concatenation of a string, for x being an
@@ -112,7 +111,7 @@ pub fn smallest_period(border_array : &[usize]) -> usize {
 /// computes the bijective Burrows-Wheeler transform naively
 pub fn bbwt_naive<C: Ord + Clone + Copy>(text: &[C]) -> Vec<C> {
     let n = text.len();
-    let factors = duval(&text);
+    let factors = duval(text);
     // factors.push(n-1);
 	// println!("duval factors {:?}", factors);
 
@@ -154,7 +153,7 @@ pub fn bbwt_naive<C: Ord + Clone + Copy>(text: &[C]) -> Vec<C> {
             }
             if char_a < char_b { return std::cmp::Ordering::Less; } else { return std::cmp::Ordering::Greater; }
         };
-        return std::cmp::Ordering::Equal;
+        std::cmp::Ordering::Equal
     });
     let mut bbwt = vec![text[0]; n];
     for i in 0..n {
@@ -173,9 +172,9 @@ pub fn bbwt_naive<C: Ord + Clone + Copy>(text: &[C]) -> Vec<C> {
  */
 pub fn suffixarray_naive<C : Ord>(text: &[C]) -> Vec<usize> {
     let n = text.len();
-    let mut sa = vec![0 as usize; n];
-    for i in 0..n {
-        sa[i] = i;
+    let mut sa = vec![0_usize; n];
+    for (i, entry) in sa.iter_mut().enumerate() {
+        *entry = i;
     }
     sa.sort_by(|a, b| {
         let asuffix = &text[*a..];
@@ -188,7 +187,7 @@ pub fn suffixarray_naive<C : Ord>(text: &[C]) -> Vec<usize> {
 /**
  * bwt is a permutation of `text` based on `sa`
  */
-pub fn bwt_from_sa<C : Clone + Copy>(text: &[C], sa: &Vec<usize>) -> Vec<C> {
+pub fn bwt_from_sa<C : Clone + Copy>(text: &[C], sa: &[usize]) -> Vec<C> {
     let n = text.len();
     let mut bwt = vec![text[0]; n];
     for i in 0..n {
@@ -217,8 +216,8 @@ pub fn border_array<C : Eq>(text: &[C]) -> Vec<usize> {
         }
         border.push(length+1);
     }
-    for i in 1..border.len() {
-        border[i] -= 1;
+    for entry in border.iter_mut().skip(1) {
+        *entry -= 1;
     }
     border
 }
@@ -333,11 +332,11 @@ pub fn duval<C : Ord>(text: &[C]) -> Vec<usize> {
         loop {
             assert_lt!(i,j);
             k += j-i;
-            ending_positions.push(k-1 as usize);
+            ending_positions.push(k - 1_usize);
             if k >= i { break }
         }
     }
-    return ending_positions;
+    ending_positions
 }
 
 /// Lyndon factorization via the inverse suffix array
@@ -349,13 +348,13 @@ pub fn isa_lyndon_factorization(isa : &[i32]) -> Vec<usize> {
     k += 1;
     while k < n {
         if isa[k] < current_val {
-            ending_positions.push(k-1 as usize);
+            ending_positions.push(k - 1_usize);
             current_val = isa[k];
         }
         k += 1;
     }
     ending_positions.push(n-1);
-    return ending_positions;
+    ending_positions
 }
 
 pub struct RandomStringGenerator {
@@ -381,8 +380,8 @@ impl Iterator for RandomStringGenerator {
             use rand::Rng;
             let mut rng = rand::thread_rng();
             let mut text = vec![0u8;128];
-            for i in 1..text.len() {
-                text[i] = rng.gen_range(1..2);
+            for letter in text.iter_mut() {
+                *letter = rng.gen_range(1..2);
             }
             Some(text)
         } else {
@@ -432,27 +431,23 @@ impl Iterator for LyndonWordGenerator {
           return Some(stack.clone());
        }
 
-       while !stack.is_empty() {
-          let current_length = stack.len();
-          while stack.len() < self.m_length {              //@ repeat word to fill exactly n syms
-             stack.push(stack[stack.len()-current_length]);
-          }
+       assert!(!stack.is_empty());
 
-          //@ delete trailing z's
-          while !stack.is_empty() && *stack.last().unwrap() as usize == self.m_alphabet_size - 1 { 
-             stack.pop();
-          }
-          if stack.is_empty() { 
-             self.m_length = 0;   //@ prevent from re-initialization by making this iterator invalid
-             return None; 
-          }
-          else {
-             *stack.last_mut().unwrap() += 1;                      //@ increment the last non-z symbol
-             return Some(stack.clone());
-          }
+       let current_length = stack.len();
+       while stack.len() < self.m_length {              //@ repeat word to fill exactly n syms
+           stack.push(stack[stack.len()-current_length]);
        }
-       self.m_length = 0;
-       return None;
+
+       //@ delete trailing z's
+       while !stack.is_empty() && *stack.last().unwrap() as usize == self.m_alphabet_size - 1 { 
+           stack.pop();
+       }
+       if stack.is_empty() { 
+           self.m_length = 0;   //@ prevent from re-initialization by making this iterator invalid
+           return None; 
+       }
+       *stack.last_mut().unwrap() += 1;                      //@ increment the last non-z symbol
+       Some(stack.clone())
     }
 }
 
@@ -478,7 +473,7 @@ impl Iterator for BinaryStringGenerator {
        text.reserve(self.m_length as usize);
        for i in 0..self.m_length {
           let bit = self.m_rank & (1<<i);
-          text.push( if bit == 0 { '0' as u8 } else { '1' as u8 });
+          text.push( if bit == 0 { b'0' } else { b'1' });
        }
        self.m_rank += 1;
        Some(text)
@@ -524,7 +519,7 @@ impl<'a, C : Eq + Copy + Clone> Iterator for ConjugateIterator<'a, C> {
 /// counts the number of runs in an array `arr`
 pub fn number_of_runs<R : std::io::Read>(reader : &mut R) -> usize {
     match io::read_char(reader) {
-        Err(_) => return 0,
+        Err(_) => 0,
         Ok(first_char) => {
             let mut run_counter = 1; //@ counts the number of character runs
             let mut prev_char = first_char; //@ the current character of the chracter run

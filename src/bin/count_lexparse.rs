@@ -80,8 +80,8 @@ fn main() {
         debug!(" T : {:?}", text);
         debug!("sa : {:?}", sa);
     }
-    let phi = core::compute_phi(&sa.as_slice());
-    let plcp = core::compute_plcp(&text.as_slice(), &phi.as_slice());
+    let phi = core::compute_phi(sa.as_slice());
+    let plcp = core::compute_plcp(text.as_slice(), phi.as_slice());
 
     info!("time: {}", now.elapsed().as_millis()); 
 
@@ -98,7 +98,7 @@ fn main() {
     if let Some(filename) = args.outfilename {
         let mut writer = io::stream_or_stdout(Some(&filename));
         for fact in factors {
-            writer.write(format!("({},{})", fact.pos, fact.len).as_bytes()).unwrap();
+            writer.write_all(format!("({},{})", fact.pos, fact.len).as_bytes()).unwrap();
         }
     }
 }

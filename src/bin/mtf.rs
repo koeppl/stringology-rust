@@ -1,6 +1,6 @@
 extern crate byte_string;
 extern crate env_logger;
-#[macro_use] extern crate more_asserts;
+
 
 use stringology::core;
 use stringology::io;
@@ -17,7 +17,7 @@ pub fn mtf<R : std::io::Read, W: std::io::Write>(mut reader : &mut R, writer : &
                     mtfvector[pos-j] = mtfvector[pos-j-1];
                 }
                 mtfvector[0] = cur_char;
-                writer.write(&[pos as u8]).unwrap();
+                writer.write_all(&[pos as u8]).unwrap();
             }
         }
     }
@@ -30,6 +30,9 @@ pub fn mtf_vector(mut input :&[u8]) -> Vec<u8> {
     output
 }
 
+
+
+#[cfg(test)] extern crate more_asserts;
 
 #[test]
 fn test_mtf() {

@@ -58,7 +58,7 @@ fn main() {
             }
         }
         charset.insert(newchar);
-        writer.write(&[newchar]).unwrap();
+        writer.write_all(&[newchar]).unwrap();
     }
 
 }

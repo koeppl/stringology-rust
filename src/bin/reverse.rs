@@ -43,6 +43,6 @@ fn main() {
 
     info!("compute reverse");
     text.reverse();
-    writer.write(text.as_slice()).unwrap();
+    writer.write_all(text.as_slice()).unwrap();
     writer.flush().unwrap();
 }

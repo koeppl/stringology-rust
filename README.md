@@ -1,4 +1,5 @@
 # Stringology-Rust
+![automatic test](https://github.com/koeppl/stringology-rust/actions/workflows/cargo.yml/badge.svg)
 
 This project contains some simple and easy-to-use tools for studying of strings whose characters are drawn from the byte alphabet.
 It currently consists of 
@@ -14,6 +15,7 @@ It currently consists of
    - `fibonacci` : computes the n-th [Fibonacci word](https://oeis.org/A003849)
    - `perioddoubling` computes the n-th [period-doubling sequence](https://oeis.org/A096268)
    - `debruijn` : computes a binary de Bruijin word of order n
+- `lyndonwords` to generate all Lyndon words up to a specific length for a given alphabet size
  - transforms
    - `reverse` : reverse the input byte-wise
 

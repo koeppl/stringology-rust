@@ -9,7 +9,7 @@ use log::info;
 /// counts the number of different characters in a byte string
 // fn count_sigma(s : &[u8]) -> u8 {
 fn count_sigma<'a, I: Iterator<Item = &'a u8>>(text_iter : I) -> u8 {
-    let mut inc = 0 as u8;
+    let mut inc = 0_u8;
     let mut alphabet_to_reduced : Vec<u8> = vec![0; std::u8::MAX as usize + 1]; //@ maps a u8 char to its symbol of the effective alphabet, we start at 1 since 0 is treated as a special symbol
     for c in text_iter {
         let index = *c as usize;

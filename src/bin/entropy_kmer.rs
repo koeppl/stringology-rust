@@ -7,6 +7,7 @@ use stringology::io;
 
 use std::collections::HashMap;
 
+#[cfg(test)]
 #[macro_use] extern crate approx;
 
 extern crate log;
@@ -19,7 +20,7 @@ use log::info;
 /// "Compact Data Structures: A Practical Approach", 11.3.2 High-Order Entropy
 ///
 
-fn entropy_via_kmer_counting<'a, I: Iterator<Item = std::io::Result<u8> >>(text_iter : &mut I, order : usize) -> (f64,usize) {
+fn entropy_via_kmer_counting<I: Iterator<Item = std::io::Result<u8> >>(text_iter : &mut I, order : usize) -> (f64,usize) {
 
     let mut kmers = HashMap::new();
     let mut kplusmers = HashMap::new();
@@ -30,7 +31,7 @@ fn entropy_via_kmer_counting<'a, I: Iterator<Item = std::io::Result<u8> >>(text_
     }
     let mut count = order;
 
-    fn increment_kmer(order : usize, ringbuf : u64, kmers : &mut HashMap<u64,u64>) -> () {
+    fn increment_kmer(order : usize, ringbuf : u64, kmers : &mut HashMap<u64,u64>) {
         let kmer = ringbuf & (std::u64::MAX >> (8*(8-order))) as u64;
         match kmers.get_mut(&kmer) {
             Some(val) => { *val += 1; }
@@ -151,7 +152,7 @@ fn main() {
     let now = Instant::now();
 
     use std::io::Read;
-    let entropy = entropy_via_kmer_counting(&mut text.as_slice().bytes().into_iter(), args.order);
+    let entropy = entropy_via_kmer_counting(&mut text.as_slice().bytes(), args.order);
 
     println!("RESULT algo=count_entropy_hash order={} time_ms={} length={} entropy={} input={}", args.order, now.elapsed().as_millis(), entropy.1, entropy.0, core::get_filename(&args.infilename));
 }

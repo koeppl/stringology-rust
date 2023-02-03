@@ -33,7 +33,7 @@ enum WordName {
     QuaternaryPaperFolding,
     BinaryDeBrujin,
     Power2,
-    VTM,
+    Vtm,
 }
 
 
@@ -51,9 +51,9 @@ fn main() {
         WordName::QuaternaryPaperFolding => word::quaternary_paperfolding_word,
         WordName::BinaryDeBrujin => word::binary_debruijn_word,
         WordName::Power2 => word::power2_sequence,
-        WordName::VTM => word::vtm_word,
+        WordName::Vtm => word::vtm_word,
     };
-    writer.write(fun(args.k).as_slice()).unwrap();
+    writer.write_all(fun(args.k).as_slice()).unwrap();
 
 }
 

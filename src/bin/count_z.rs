@@ -88,13 +88,13 @@ fn test_compute_lz77() {
             sa
         };
 
-        let isa = core::inverse_permutation(&sa.as_slice());
-        let psv = core::compute_psv(&sa.as_slice());
-        let nsv = core::compute_nsv(&sa.as_slice());
+        let isa = core::inverse_permutation(sa.as_slice());
+        let psv = core::compute_psv(sa.as_slice());
+        let nsv = core::compute_nsv(sa.as_slice());
         let lcp = {
-            let phi = core::compute_phi(&sa.as_slice());
-            let plcp = core::compute_plcp(&text.as_slice(), &phi.as_slice());
-            core::compute_lcp(&plcp.as_slice(), &sa.as_slice())
+            let phi = core::compute_phi(sa.as_slice());
+            let plcp = core::compute_plcp(text.as_slice(), phi.as_slice());
+            core::compute_lcp(plcp.as_slice(), sa.as_slice())
         };
         let lcprmq = SegmentPoint::build(lcp.clone(), Min);
         let factors = compute_lz77(&text, &lcprmq, &sa, &isa, &lcp, &nsv, &psv);
@@ -147,13 +147,13 @@ fn main() {
         debug!("sa : {:?}", sa);
     }
 
-    let isa = core::inverse_permutation(&sa.as_slice());
-    let psv = core::compute_psv(&sa.as_slice());
-    let nsv = core::compute_nsv(&sa.as_slice());
+    let isa = core::inverse_permutation(sa.as_slice());
+    let psv = core::compute_psv(sa.as_slice());
+    let nsv = core::compute_nsv(sa.as_slice());
     let lcp = {
-        let phi = core::compute_phi(&sa.as_slice());
-        let plcp = core::compute_plcp(&text.as_slice(), &phi.as_slice());
-        core::compute_lcp(&plcp.as_slice(), &sa.as_slice())
+        let phi = core::compute_phi(sa.as_slice());
+        let plcp = core::compute_plcp(text.as_slice(), phi.as_slice());
+        core::compute_lcp(plcp.as_slice(), sa.as_slice())
     };
     let lcprmq = SegmentPoint::build(lcp.clone(), Min);
 

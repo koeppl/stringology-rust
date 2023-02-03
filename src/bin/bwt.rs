@@ -63,6 +63,6 @@ fn main() {
     };
 
     let mut writer = io::stream_or_stdout(core::stringopt_stropt(&args.outfilename));
-    writer.write(bwt.as_slice()).unwrap();
+    writer.write_all(bwt.as_slice()).unwrap();
     writer.flush().unwrap();
 }

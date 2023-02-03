@@ -43,7 +43,7 @@ pub fn rle<R : std::io::Read, W: std::io::Write>(mut reader : &mut R, writer : &
                     Ok(next_char) => {
                         if next_char != prev_char {
                             assert_lt!(run_counter, u8::MAX);
-                            writer.write(&[prev_char, run_counter as u8]).unwrap();
+                            writer.write_all(&[prev_char, run_counter as u8]).unwrap();
                             prev_char = next_char;
                             run_counter = 0;
                         } else {
@@ -52,13 +52,13 @@ pub fn rle<R : std::io::Read, W: std::io::Write>(mut reader : &mut R, writer : &
                     }
                 }
             }
-            writer.write(&[prev_char, run_counter as u8]).unwrap();
+            writer.write_all(&[prev_char, run_counter as u8]).unwrap();
         }
     }
     writer.flush().unwrap();
 }
 
-const CHR_ZERO : u8 = '0' as u8;
+const CHR_ZERO : u8 = b'0';
 
 pub fn rle_zero<R : std::io::Read, W: std::io::Write>(mut reader : &mut R, writer : &mut W) {
     match io::read_char(&mut reader) {
@@ -68,7 +68,7 @@ pub fn rle_zero<R : std::io::Read, W: std::io::Write>(mut reader : &mut R, write
             if first_char == CHR_ZERO {
                 run_counter = 1;
             } else {
-                writer.write(&[first_char]).unwrap();
+                writer.write_all(&[first_char]).unwrap();
             }
             loop {
                 match io::read_char(&mut reader) {
@@ -76,10 +76,10 @@ pub fn rle_zero<R : std::io::Read, W: std::io::Write>(mut reader : &mut R, write
                     Ok(next_char) => {
                         if next_char != CHR_ZERO {
                             if run_counter == 0 {
-                                writer.write(&[next_char]).unwrap();
+                                writer.write_all(&[next_char]).unwrap();
                             } else {
                                 assert_lt!(run_counter-1, u8::MAX);
-                                writer.write(&[CHR_ZERO, (run_counter-1) as u8]).unwrap();
+                                writer.write_all(&[CHR_ZERO, (run_counter-1) as u8]).unwrap();
                                 run_counter = 0;
                             }
                         } else {
@@ -89,7 +89,7 @@ pub fn rle_zero<R : std::io::Read, W: std::io::Write>(mut reader : &mut R, write
                 }
             }
             if run_counter > 0  {
-                writer.write(&[CHR_ZERO, run_counter as u8]).unwrap();
+                writer.write_all(&[CHR_ZERO, run_counter as u8]).unwrap();
             }
         }
     }
@@ -130,12 +130,9 @@ fn main() {
 
     if args.human {
         rle_text(&mut reader, &mut writer); 
+    } else if args.onlyzero {
+        rle_zero(&mut reader, &mut writer); 
     } else { 
-        if args.onlyzero {
-                rle_zero(&mut reader, &mut writer); 
-            } else { 
-                rle(&mut reader, &mut writer); 
-            }
-        }
-
+        rle(&mut reader, &mut writer); 
+    }
 }
