@@ -5,7 +5,7 @@ pub fn file2byte_vector(filename: &str, prefix_length: usize) -> Vec<u8> {
     use std::io::Read;
 
     let path = std::path::Path::new(filename);
-    let mut f = fs::File::open(&path).expect("no file found");
+    let mut f = fs::File::open(path).expect("no file found");
     let metadata = fs::metadata(path).expect("unable to read metadata");
     let buffer_length = if prefix_length > 0 {
         std::cmp::min(prefix_length as u64, metadata.len())
