@@ -12,9 +12,9 @@ use clap::Parser;
 #[command(author, version, about, long_about = None)]
 
 struct Args {
-   /// the input file to read (otherwise read from stdin)
-   #[arg(short, long)]
-   infilename: Option<String>,
+    /// the input file to read (otherwise read from stdin)
+    #[arg(short, long)]
+    infilename: Option<String>,
 }
 
 fn main() {

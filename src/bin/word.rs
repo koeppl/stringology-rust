@@ -1,6 +1,6 @@
-use stringology::word;
 use stringology::core;
 use stringology::io;
+use stringology::word;
 
 extern crate clap;
 use clap::Parser;
@@ -9,17 +9,16 @@ use clap::Parser;
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
+    /// the input file to read (otherwise read from stdin)
+    #[arg(short)]
+    k: u8,
 
-   /// the input file to read (otherwise read from stdin)
-   #[arg(short)]
-   k: u8,
+    #[arg(short, long, value_enum)]
+    name: WordName,
 
-   #[arg(short,long,value_enum)]
-   name: WordName,
-
-   /// the output file to write (otherwise write from stdout)
-   #[arg(short, long)]
-   outfilename: Option<String>,
+    /// the output file to write (otherwise write from stdout)
+    #[arg(short, long)]
+    outfilename: Option<String>,
 }
 
 #[derive(clap::ValueEnum, Clone, Debug)]
@@ -35,7 +34,6 @@ enum WordName {
     Power2,
     Vtm,
 }
-
 
 fn main() {
     let args = Args::parse();
@@ -54,6 +52,4 @@ fn main() {
         WordName::Vtm => word::vtm_word,
     };
     writer.write_all(fun(args.k).as_slice()).unwrap();
-
 }
-

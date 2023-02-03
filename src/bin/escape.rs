@@ -10,9 +10,7 @@ use log::info;
 use stringology::core;
 use stringology::io;
 
-
 // use std::io::prelude::*;
-
 
 extern crate clap;
 use clap::Parser;
@@ -20,38 +18,34 @@ use clap::Parser;
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
+    /// the input file to read (otherwise read from stdin)
+    #[arg(short, long)]
+    infilename: Option<String>,
 
-   /// the input file to read (otherwise read from stdin)
-   #[arg(short, long)]
-   infilename: Option<String>,
+    /// the output file to write (otherwise write from stdout)
+    #[arg(short, long)]
+    outfilename: Option<String>,
 
-   /// the output file to write (otherwise write from stdout)
-   #[arg(short, long)]
-   outfilename: Option<String>,
+    /// the length of the prefix to parse
+    #[arg(short, long, default_value_t = 0)]
+    prefixlength: usize,
 
-   /// the length of the prefix to parse
-   #[arg(short, long, default_value_t = 0)]
-   prefixlength: usize,
+    /// the escape symbol
+    #[arg(short, long, default_value_t = 0)]
+    escape_symbol: u8,
 
-   /// the escape symbol
-   #[arg(short, long, default_value_t = 0)]
-   escape_symbol: u8,
+    /// byte codes that need to be escaped, a list separeted by commas
+    #[arg(short, long)]
+    from_symbols: Vec<u8>,
 
-   /// byte codes that need to be escaped, a list separeted by commas
-   #[arg(short, long)]
-   from_symbols: Vec<u8>,
+    /// list byte codes that are safe and equal of length to from
+    #[arg(short, long)]
+    to_symbols: Vec<u8>,
 
-   /// list byte codes that are safe and equal of length to from
-   #[arg(short, long)]
-   to_symbols: Vec<u8>,
-
-   /// list byte codes that are safe and equal of length to from
-   #[arg(short, long)]
-   is_reversion: bool,
-
+    /// list byte codes that are safe and equal of length to from
+    #[arg(short, long)]
+    is_reversion: bool,
 }
-
-
 
 fn main() {
     let args = Args::parse();
@@ -80,13 +74,15 @@ fn main() {
 
     //@ sanity checks
     assert_eq!(args.from_symbols.len(), args.to_symbols.len());
-    assert!(! args.from_symbols.contains(&args.escape_symbol));
-    assert!(! args.to_symbols.contains(&args.escape_symbol));
-    assert!(! args.from_symbols.iter().any(|&i| args.to_symbols.contains(&i)));
+    assert!(!args.from_symbols.contains(&args.escape_symbol));
+    assert!(!args.to_symbols.contains(&args.escape_symbol));
+    assert!(!args
+        .from_symbols
+        .iter()
+        .any(|&i| args.to_symbols.contains(&i)));
 
     env_logger::init();
     info!("args.prefixlength: {}", args.prefixlength);
-
 
     if args.is_reversion {
         let revert_mapping = {
@@ -106,7 +102,9 @@ fn main() {
                             writer.write_all(&[args.escape_symbol]).unwrap();
                             continue;
                         }
-                        writer.write_all(&[*revert_mapping.get(&next_char).unwrap()]).unwrap();
+                        writer
+                            .write_all(&[*revert_mapping.get(&next_char).unwrap()])
+                            .unwrap();
                     } else {
                         writer.write_all(&[cur_char]).unwrap();
                     }
@@ -126,13 +124,18 @@ fn main() {
                 Err(_) => break,
                 Ok(cur_char) => {
                     if cur_char == args.escape_symbol {
-                        writer.write_all(&[args.escape_symbol, args.escape_symbol]).unwrap();
+                        writer
+                            .write_all(&[args.escape_symbol, args.escape_symbol])
+                            .unwrap();
                         continue;
                     }
                     match char_mapping.get(&cur_char) {
-                        Some(remapped_char) => writer.write_all(&[args.escape_symbol, *remapped_char]),
+                        Some(remapped_char) => {
+                            writer.write_all(&[args.escape_symbol, *remapped_char])
+                        }
                         None => writer.write_all(&[cur_char]),
-                    }.unwrap();
+                    }
+                    .unwrap();
                 }
             }
         }

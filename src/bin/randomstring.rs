@@ -1,10 +1,9 @@
 extern crate env_logger;
 use stringology::io;
 
-use rand::Rng;
 use rand::distributions::Alphanumeric;
+use rand::Rng;
 use stringology::core;
-
 
 extern crate clap;
 use clap::Parser;
@@ -12,18 +11,17 @@ use clap::Parser;
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
+    /// the output file to write (otherwise write from stdout)
+    #[arg(short, long)]
+    outfilename: Option<String>,
 
-   /// the output file to write (otherwise write from stdout)
-   #[arg(short, long)]
-   outfilename: Option<String>,
+    /// the output file to write (otherwise write from stdout)
+    #[arg(short, long)]
+    alphabet_size: usize,
 
-   /// the output file to write (otherwise write from stdout)
-   #[arg(short, long)]
-   alphabet_size : usize,
-
-   /// the length of the prefix to parse
-   #[arg(short, long, default_value_t = 10)]
-   prefixlength: usize,
+    /// the length of the prefix to parse
+    #[arg(short, long, default_value_t = 10)]
+    prefixlength: usize,
 }
 
 /// the same can be achieved by the UNIX tools rev and tac, but these only work with valid
@@ -60,5 +58,4 @@ fn main() {
         charset.insert(newchar);
         writer.write_all(&[newchar]).unwrap();
     }
-
 }
