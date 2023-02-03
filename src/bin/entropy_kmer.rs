@@ -36,7 +36,7 @@ fn entropy_via_kmer_counting<I: Iterator<Item = std::io::Result<u8>>>(
     let mut count = order;
 
     fn increment_kmer(order: usize, ringbuf: u64, kmers: &mut HashMap<u64, u64>) {
-        let kmer = ringbuf & (std::u64::MAX >> (8 * (8 - order))) as u64;
+        let kmer = ringbuf & (std::u64::MAX >> (8 * (8 - order)));
         match kmers.get_mut(&kmer) {
             Some(val) => {
                 *val += 1;
@@ -52,7 +52,7 @@ fn entropy_via_kmer_counting<I: Iterator<Item = std::io::Result<u8>>>(
         ringbuf <<= 8;
         ringbuf |= byte.unwrap() as u64;
         {
-            let kplusmer = ringbuf & (std::u64::MAX >> (8 * (7 - order))) as u64;
+            let kplusmer = ringbuf & (std::u64::MAX >> (8 * (7 - order)));
             match kplusmers.get_mut(&kplusmer) {
                 Some(val) => {
                     *val += 1;

@@ -58,11 +58,11 @@ fn lcp_intervals(text: &[u8], sa: &[i32], lcp: &[u32]) -> Vec<SuffixEdge> {
         while lcp[i] < path.last().unwrap().borrow().depth {
             let node = Rc::clone(&path.pop().unwrap());
             let mut node_ref = (*node).borrow_mut();
-            (*node_ref).end = (i - 1) as u32;
+            node_ref.end = (i - 1) as u32;
 
             if let Some(child) = &child_ptr {
                 let label =
-                    text[sa[child.borrow().begin as usize] as usize + (*node_ref).depth as usize];
+                    text[sa[child.borrow().begin as usize] as usize + node_ref.depth as usize];
                 edges.push(SuffixEdge {
                     parent: Rc::clone(&node),
                     label,
@@ -209,12 +209,12 @@ fn is_attractor(text: &[u8], attractor: &[u64]) -> bool {
     let mut arr_d = vec![0; n];
     for i in 0..n {
         let text_position = sa[i] as u64;
-        if !attractor_positions.get_bit(text_position as u64) {
-            let successor_rank = rank.rank1(text_position as u64);
+        if !attractor_positions.get_bit(text_position) {
+            let successor_rank = rank.rank1(text_position);
             match select.select1(successor_rank) {
                 Some(pos) => {
                     assert!(attractor_positions.get_bit(pos));
-                    arr_d[i] = pos - text_position as u64;
+                    arr_d[i] = pos - text_position;
                 }
                 None => arr_d[i] = n as u64,
             }
@@ -237,7 +237,7 @@ fn is_attractor(text: &[u8], attractor: &[u64]) -> bool {
             let startpos = sa[lcpinterval.begin as usize] as usize;
             let endpos = std::cmp::min(
                 sa[lcpinterval.begin as usize] as usize + lcplength,
-                n as usize,
+                n,
             );
             println!(
                 "substring '{}' not covered!",

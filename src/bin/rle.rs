@@ -10,7 +10,7 @@ pub fn rle_text<R: std::io::Read, W: std::io::Write>(mut reader: &mut R, writer:
     match io::read_char(&mut reader) {
         Err(_) => (),
         Ok(first_char) => {
-            let mut run_counter = 0; //@ counts the number of character runs
+            let mut run_counter = 0_u8; //@ counts the number of character runs
             let mut prev_char = first_char; //@ the current character of the chracter run
             loop {
                 match io::read_char(&mut reader) {
@@ -36,7 +36,7 @@ pub fn rle<R: std::io::Read, W: std::io::Write>(mut reader: &mut R, writer: &mut
     match io::read_char(&mut reader) {
         Err(_) => (),
         Ok(first_char) => {
-            let mut run_counter = 0; //@ counts the number of character runs
+            let mut run_counter = 0_u8; //@ counts the number of character runs
             let mut prev_char = first_char; //@ the current character of the chracter run
             loop {
                 match io::read_char(&mut reader) {
@@ -44,7 +44,7 @@ pub fn rle<R: std::io::Read, W: std::io::Write>(mut reader: &mut R, writer: &mut
                     Ok(next_char) => {
                         if next_char != prev_char {
                             assert_lt!(run_counter, u8::MAX);
-                            writer.write_all(&[prev_char, run_counter as u8]).unwrap();
+                            writer.write_all(&[prev_char, run_counter]).unwrap();
                             prev_char = next_char;
                             run_counter = 0;
                         } else {
@@ -53,7 +53,7 @@ pub fn rle<R: std::io::Read, W: std::io::Write>(mut reader: &mut R, writer: &mut
                     }
                 }
             }
-            writer.write_all(&[prev_char, run_counter as u8]).unwrap();
+            writer.write_all(&[prev_char, run_counter]).unwrap();
         }
     }
     writer.flush().unwrap();
@@ -81,7 +81,7 @@ pub fn rle_zero<R: std::io::Read, W: std::io::Write>(mut reader: &mut R, writer:
                             } else {
                                 assert_lt!(run_counter - 1, u8::MAX);
                                 writer
-                                    .write_all(&[CHR_ZERO, (run_counter - 1) as u8])
+                                    .write_all(&[CHR_ZERO, run_counter.saturating_sub(1) ])
                                     .unwrap();
                                 run_counter = 0;
                             }
@@ -92,7 +92,7 @@ pub fn rle_zero<R: std::io::Read, W: std::io::Write>(mut reader: &mut R, writer:
                 }
             }
             if run_counter > 0 {
-                writer.write_all(&[CHR_ZERO, run_counter as u8]).unwrap();
+                writer.write_all(&[CHR_ZERO, run_counter]).unwrap();
             }
         }
     }

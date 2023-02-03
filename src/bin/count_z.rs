@@ -28,7 +28,7 @@ fn decode_lz77(factors: &[LZFactor]) -> Vec<u8> {
         } else {
             let ref_pos = text.len() - factor.pos as usize;
             for p in 0..factor.len as usize {
-                text.push(text[ref_pos + p as usize]);
+                text.push(text[ref_pos + p]);
             }
         }
     }
@@ -106,10 +106,10 @@ fn compute_lz77(
         } else {
             sa[psv[sa_position] as usize]
         };
-        debug_assert_lt!(max_pos as usize, i as usize);
+        debug_assert_lt!(max_pos as usize, i);
         factors.push(LZFactor {
             len: max_lcp,
-            pos: (i as u32 - max_pos as u32) as u32,
+            pos: (i as u32 - max_pos as u32),
         });
         i += max_lcp as usize;
     }
