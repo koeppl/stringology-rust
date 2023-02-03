@@ -235,10 +235,7 @@ fn is_attractor(text: &[u8], attractor: &[u64]) -> bool {
         if lcplength <= rmq {
             is_attractor = false;
             let startpos = sa[lcpinterval.begin as usize] as usize;
-            let endpos = std::cmp::min(
-                sa[lcpinterval.begin as usize] as usize + lcplength,
-                n,
-            );
+            let endpos = std::cmp::min(sa[lcpinterval.begin as usize] as usize + lcplength, n);
             println!(
                 "substring '{}' not covered!",
                 str::from_utf8(&text[startpos..endpos]).unwrap()

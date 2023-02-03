@@ -81,7 +81,7 @@ pub fn rle_zero<R: std::io::Read, W: std::io::Write>(mut reader: &mut R, writer:
                             } else {
                                 assert_lt!(run_counter - 1, u8::MAX);
                                 writer
-                                    .write_all(&[CHR_ZERO, run_counter.saturating_sub(1) ])
+                                    .write_all(&[CHR_ZERO, run_counter.saturating_sub(1)])
                                     .unwrap();
                                 run_counter = 0;
                             }
