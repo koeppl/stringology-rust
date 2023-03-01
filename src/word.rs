@@ -205,6 +205,7 @@ fn test_kolakoski() {
 }
 
 static STR_AB: &[u8] = &[CHR_A, CHR_B];
+static STR_AAB: &[u8] = &[CHR_A, CHR_A, CHR_B];
 static STR_AA: &[u8] = &[CHR_A, CHR_A];
 static STR_BA: &[u8] = &[CHR_B, CHR_A];
 
@@ -259,7 +260,64 @@ fn iterate_2morphism(rounds: u8, morphism: fn(u8) -> &'static [u8]) -> Vec<u8> {
     text
 }
 
-/// we assume that morphism(a) has a as a prefix.
+// /// for a general morphism where the k-th word is not a prefix of the (k+1)-st word, we need a
+// /// slower algorithm that iteratively allocates a larger text
+// fn iterate_prefix_morphism_with_startsymbol(
+//     rounds: u8,
+//     morphism: fn(u8) -> &'static [u8],
+//     sizehint: usize,
+// 	startsymbol: &[u8]
+// ) -> Vec<u8> {
+//     if rounds == 0 {
+//         return startsymbol.to_vec();
+//     }
+//     let mut text: Vec<u8> = Vec::with_capacity(if sizehint > 0 { sizehint } else { 1 << rounds });
+//     let mut round = 1;
+//     for start_char in startsymbol {
+//         for c in morphism(*start_char) {
+//             text.push(*c);
+//         }
+//     }
+//     let mut end_last_round = text.len() - 1;
+//     let mut source_pos = 1;
+//     while round < rounds {
+//         for c in morphism(text[source_pos]) {
+//             text.push(*c);
+//         }
+//         // println!("text={:?} source_pos={} morphism={:?} round={} end_last_round={}", text, source_pos, morphism(text[source_pos]), round, end_last_round);
+//         if source_pos == end_last_round {
+//             round += 1;
+//             end_last_round = text.len() - 1;
+//         }
+//         source_pos += 1;
+//     }
+//     text
+// }
+
+/// for a general morphism where the k-th word is not a prefix of the (k-1)-st word, we need a
+/// slower algorithm that iteratively allocates a larger text
+fn iterate_general_morphism_with_startsymbol(
+    rounds: u8,
+    morphism: fn(u8) -> &'static [u8],
+    sizehint: usize,
+    startsymbol: &[u8],
+) -> Vec<u8> {
+    let mut oldtext: Vec<u8> = startsymbol.to_vec();
+    let mut text: Vec<u8> = Vec::with_capacity(if sizehint > 0 { sizehint } else { 1 << rounds });
+    for _ in 0..rounds {
+        for start_char in oldtext {
+            for c in morphism(start_char) {
+                text.push(*c);
+            }
+        }
+        oldtext = text;
+        text = Vec::new()
+    }
+    oldtext
+}
+
+/// we assume that morphism(a) has a as a prefix, and that the k-th word is a prefix of the
+/// (k+1)-st word
 /// if sizehint > 0, we assume that the sequence to compute fits into this size
 fn iterate_general_morphism(
     rounds: u8,
@@ -636,4 +694,31 @@ fn test_vtm() {
     assert_eq!(b"abcacb", vtm_word(2).as_slice());
     assert_eq!(b"abcacbabcbac", vtm_word(3).as_slice());
     assert_eq!(b"abcacbabcbacabcacbacabcb", vtm_word(4).as_slice());
+}
+
+pub fn fibonacci_lyndonfactor_morphism(c: u8) -> &'static [u8] {
+    match c {
+        CHR_A => STR_AAB,
+        _ => STR_AB,
+    }
+}
+
+/// The k-th Lyndon factor of the infinite Fibonacci word
+/// Guy Melançon:
+/// Lyndon Words and Singular Factors of Sturmian Words. Theor. Comput. Sci. 218(1): 41-59 (1999)
+/// Proposition 2.8
+pub fn fibonacci_lyndonfactor(k: u8) -> Vec<u8> {
+    iterate_general_morphism_with_startsymbol(
+        k,
+        fibonacci_lyndonfactor_morphism,
+        (1 + (3 << (k))) as usize,
+        STR_AB,
+    )
+}
+
+#[test]
+fn test_fibonacci_lyndonfactor() {
+    assert_eq!(b"ab", fibonacci_lyndonfactor(0).as_slice());
+    assert_eq!(b"aabab", fibonacci_lyndonfactor(1).as_slice());
+    assert_eq!(b"aabaababaabab", fibonacci_lyndonfactor(2).as_slice());
 }

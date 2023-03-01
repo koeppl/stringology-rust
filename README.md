@@ -15,6 +15,7 @@ It currently consists of
    - `fibonacci` : computes the n-th [Fibonacci word](https://oeis.org/A003849)
    - `perioddoubling` computes the n-th [period-doubling sequence](https://oeis.org/A096268)
    - `debruijn` : computes a binary de Bruijin word of order n
+	 - `FibonacciLyndonFactor` : the n-th Lyndon factor of the infinite Fibonacci word
 - `lyndonwords` to generate all Lyndon words up to a specific length for a given alphabet size
  - transforms
    - `reverse` : reverse the input byte-wise

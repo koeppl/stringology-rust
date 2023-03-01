@@ -24,6 +24,7 @@ struct Args {
 #[derive(clap::ValueEnum, Clone, Debug)]
 enum WordName {
     Fibonacci,
+    FibonacciLyndonFactor,
     Tribonacci,
     Kolakoski,
     ThueMorse,
@@ -41,6 +42,7 @@ fn main() {
 
     let fun = match args.name {
         WordName::Fibonacci => word::fibonacci_word,
+        WordName::FibonacciLyndonFactor => word::fibonacci_lyndonfactor,
         WordName::Tribonacci => word::tribonacci_word,
         WordName::Kolakoski => word::kolakoski_word,
         WordName::ThueMorse => word::thuemorse_word,
