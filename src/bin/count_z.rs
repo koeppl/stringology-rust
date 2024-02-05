@@ -63,7 +63,6 @@ fn compute_lz77(
             debug_assert_eq!(
                 ret,
                 (psv_sa_position + 1..sa_position + 1)
-                    .into_iter()
                     .map(|x| { lcp[x] })
                     .min()
                     .unwrap()
@@ -79,7 +78,6 @@ fn compute_lz77(
             debug_assert_eq!(
                 ret,
                 (sa_position + 1..nsv_sa_position + 1)
-                    .into_iter()
                     .map(|x| { lcp[x] })
                     .min()
                     .unwrap()

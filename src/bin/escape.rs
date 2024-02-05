@@ -73,9 +73,19 @@ fn main() {
     let mut writer = io::stream_or_stdout(core::stringopt_stropt(&args.outfilename));
 
     //@ sanity checks
-    assert_eq!(args.from_symbols.len(), args.to_symbols.len(), "The set of --from and --to symbols must be of equal size!");
-    assert!(!args.from_symbols.contains(&args.escape_symbol), "The set of --from symbols must not contain the escape symbol!");
-    assert!(!args.to_symbols.contains(&args.escape_symbol), "The set of --to symbols must not contain the escape symbol!");
+    assert_eq!(
+        args.from_symbols.len(),
+        args.to_symbols.len(),
+        "The set of --from and --to symbols must be of equal size!"
+    );
+    assert!(
+        !args.from_symbols.contains(&args.escape_symbol),
+        "The set of --from symbols must not contain the escape symbol!"
+    );
+    assert!(
+        !args.to_symbols.contains(&args.escape_symbol),
+        "The set of --to symbols must not contain the escape symbol!"
+    );
     assert!(!args
         .from_symbols
         .iter()

@@ -106,8 +106,7 @@ fn lcp_intervals(text: &[u8], sa: &[i32], lcp: &[u32]) -> Vec<SuffixEdge> {
     }
     let mut child_ptr: Option<Rc<RefCell<LCPInterval>>> = None;
     // treat remaining nodes on `path`
-    while !path.is_empty() {
-        let node = path.pop().unwrap();
+    while let Some(node) = path.pop() {
         node.borrow_mut().end = (n - 1) as u32;
         if let Some(child) = &child_ptr {
             let label =
