@@ -62,8 +62,7 @@ pub fn bwt_by_matrix(text: &[u8]) -> Vec<u8> {
     assert_gt!(n, 0);
 
     let conjugate_start = lyndon_conjugate(text);
-    let mut newtext = Vec::new();
-    newtext.reserve(n);
+    let mut newtext = Vec::with_capacity(n);
     for letter in text[conjugate_start..n].iter() {
         newtext.push(*letter);
     }
@@ -217,8 +216,7 @@ pub fn bwt_from_sa<C: Clone + Copy>(text: &[C], sa: &[usize]) -> Vec<C> {
  */
 pub fn border_array<C: Eq>(text: &[C]) -> Vec<usize> {
     let n = text.len();
-    let mut border = Vec::new();
-    border.reserve(n + 1);
+    let mut border = Vec::with_capacity(n + 1);
     border.push(0);
     for i in 0..n {
         let mut length = border[i];
@@ -505,8 +503,7 @@ impl Iterator for BinaryStringGenerator {
         if self.m_rank == u64::MAX {
             return None;
         }
-        let mut text = Vec::new();
-        text.reserve(self.m_length as usize);
+        let mut text = Vec::with_capacity(self.m_length as usize);
         for i in 0..self.m_length {
             let bit = self.m_rank & (1 << i);
             text.push(if bit == 0 { b'0' } else { b'1' });
