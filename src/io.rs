@@ -13,13 +13,16 @@ pub fn file2byte_vector(filename: &str, prefix_length: usize) -> Vec<u8> {
         metadata.len()
     };
     assert!(buffer_length <= std::usize::MAX as u64);
-    let mut buffer = Vec::new();
-    buffer.reserve_exact(buffer_length as usize);
 
-    match f.read_to_end(&mut buffer) {
-        Ok(length) => assert_eq!(length, buffer.len()),
-        Err(x) => panic!("in file2byte_vector: {}", x),
-    };
+    let mut buffer = vec![0; buffer_length as usize];
+    f.read_exact(&mut buffer).unwrap();
+
+    // let mut buffer = Vec::new();
+    // buffer.reserve_exact(buffer_length as usize);
+    // match f.read_to_end(&mut buffer) {
+    //     Ok(length) => assert_eq!(length, buffer.len()),
+    //     Err(x) => panic!("in file2byte_vector: {}", x),
+    // };
     buffer
 }
 

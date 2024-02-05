@@ -8,9 +8,10 @@ use more_asserts::assert_lt;
 use more_asserts::debug_assert_lt;
 
 pub fn bwt_from_text_by_sa(text: &Vec<u8>) -> Vec<u8> {
+    assert_gt!(!text.len(), 0);
     let n = text.len();
     let mut sa = vec![0; n];
-    assert!(!text[..text.len() - 1].iter().any(|&x| x == 0));
+    assert!(!text[..text.len() - 1].iter().any(|&x| x == 0), "the input text contains bytes equal to zero!");
     cdivsufsort::sort_in_place(text, sa.as_mut_slice());
     let mut bwt = vec![text[0]; n];
     // let mut rsa = vec![0; n];
@@ -236,6 +237,7 @@ pub fn bit_size(i: usize) -> u8 {
 
 pub fn compute_phi<T: AsPrimitive<usize> + num::cast::FromPrimitive>(sa: &[T]) -> Vec<T> {
     let mut phi = vec![T::from_usize(0).unwrap(); sa.len()];
+    assert_gt!(sa.len(), 0);
     for i in 1..sa.len() {
         phi[sa[i].as_()] = sa[i - 1];
     }

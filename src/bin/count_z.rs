@@ -199,7 +199,7 @@ fn main() {
     let result_format = format!(
         "RESULT file={} length={} ",
         core::get_filename(&args.infilename),
-        args.prefixlength
+        sa.len()
     );
 
     now = Instant::now();

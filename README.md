@@ -29,12 +29,19 @@ cargo build
 cargo run --bin count_sigma -- --file ./data/tudocomp/einstein.en.txt
 ```
 
+
 compute the 5th Fibonacci word
 ```
 cargo run --bin word -- -n fibonacci -k 5
 ```
 
-
 Datasets can be found at http://dolomit.cs.tu-dortmund.de/tudocomp/
 
 The output format of the analytic tools is compatible with [sqlplot](https://github.com/koeppl/sqlplot).
+
+## CAVEATS
+
+ - The BWT computation requires that the zero byte does not occur in your input. To enforce that, you can use the `escape` program to escape all zero bytes.
+For instance, `escape -f 0 -t 255 -e 254 | count_r` escapes 0 with the escape byte 254 to byte 255, and pipes the input to `count_r` counting the number of BWT runs.
+
+

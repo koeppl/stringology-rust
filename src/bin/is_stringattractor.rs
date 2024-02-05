@@ -181,11 +181,11 @@ fn is_attractor(text: &[u8], attractor: &[u64]) -> bool {
     };
     let suffix_edges = lcp_intervals(text, &sa, &lcp);
 
-    use succinct::BitVector;
+    // use succinct::BitVector;
     use succinct::*;
     // use succinct::Select1Support;
-    use succinct::bit_vec::BitVecMut;
-    use succinct::BinSearchSelect;
+    // use succinct::bit_vec::BitVecMut;
+    // use succinct::BinSearchSelect;
 
     let attractor_positions = {
         let mut v = BitVector::with_fill(n as u64, false);
@@ -194,7 +194,7 @@ fn is_attractor(text: &[u8], attractor: &[u64]) -> bool {
         }
         v
     };
-    use succinct::Rank9;
+    // use succinct::Rank9;
     //TODO: remove clone() calls!
     let rank = Rank9::new(attractor_positions.clone());
     let select = BinSearchSelect::new(rank.clone()); //@ starts with index 0
