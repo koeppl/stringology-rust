@@ -68,7 +68,7 @@ fn main() {
         None => (),
         Some(output_filename) => {
             use std::io::Write;
-            let mut os = std::io::BufWriter::new(std::fs::File::create(&output_filename).unwrap());
+            let mut os = std::io::BufWriter::new(std::fs::File::create(output_filename).unwrap());
             os.write_all(b">Factor 1\n").unwrap();
             os.write_all(&text[0..factors[0] + 1]).unwrap();
             for factor_id in 1..factors.len() {
