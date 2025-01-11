@@ -22,11 +22,10 @@ struct Args {
     prefixlength: usize,
 }
 
-fn get_mus(sa: &[i32], isa: &[i32], lcp: &[u32]) -> Vec<(usize, usize)>
-{
+fn get_mus(sa: &[i32], isa: &[i32], lcp: &[u32]) -> Vec<(usize, usize)> {
     let n = sa.len() - 1;
 
-    let getlength = | i : usize | -> usize {
+    let getlength = |i: usize| -> usize {
         let isai = isa[i] as usize;
         if isai + 1 == sa.len() {
             lcp[isai] as usize
@@ -39,19 +38,20 @@ fn get_mus(sa: &[i32], isa: &[i32], lcp: &[u32]) -> Vec<(usize, usize)>
 
     for i in 0..n {
         let elli = getlength(i);
-        assert!(elli+i < sa.len(), "cannot happen since the last character is always a sentinel"); 
-        if elli+i >= n  {
+        assert!(
+            elli + i < sa.len(),
+            "cannot happen since the last character is always a sentinel"
+        );
+        if elli + i >= n {
             continue;
         }
         let nextell = getlength(i + 1);
         if elli <= nextell {
-            mus.push((i, elli+1));
+            mus.push((i, elli + 1));
         }
     }
     mus
 }
-
-
 
 fn main() {
     let args = Args::parse();
@@ -65,7 +65,8 @@ fn main() {
     info!("Build DS");
     let now = Instant::now();
 
-    let text = io::file_or_stdin2byte_vector(core::stringopt_stropt(&args.infilename), args.prefixlength);
+    let text =
+        io::file_or_stdin2byte_vector(core::stringopt_stropt(&args.infilename), args.prefixlength);
 
     let sa = {
         let mut sa = vec![0; text.len()];
@@ -95,14 +96,12 @@ fn main() {
     );
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use stringology::word;
 
-    fn get_mus_from_text(text: &[u8]) -> Vec<(usize, usize)>
-    {
+    fn get_mus_from_text(text: &[u8]) -> Vec<(usize, usize)> {
         let sa = {
             let mut sa = vec![0; text.len()];
             cdivsufsort::sort_in_place(&text, sa.as_mut_slice());
@@ -131,10 +130,6 @@ mod tests {
             assert_eq!(mus[0].1, word::fibonacci_number(i - 3));
             assert_eq!(mus[1].0, word::fibonacci_number(i - 1) as usize - 1);
             assert_eq!(mus[1].1, word::fibonacci_number(i - 2));
-
         }
     }
-
-
 }
-
