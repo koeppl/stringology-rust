@@ -14,7 +14,7 @@ extern crate log;
 use log::info;
 
 fn zero_order_entropy<'a, I: Iterator<Item = &'a u8>>(text_iter: I) -> f64 {
-    let mut char_counters: Vec<usize> = vec![0; std::u8::MAX as usize + 1];
+    let mut char_counters: Vec<usize> = vec![0; u8::MAX as usize + 1];
     let mut total_count = 0;
     for c in text_iter {
         let index: usize = (*c).into();

@@ -28,6 +28,6 @@ fn main() {
     for it in core::LyndonWordGenerator::new(args.length, args.sigma) {
         let out: Vec<u8> = it.iter().map(|x| x + b'a').collect::<Vec<u8>>();
         writer.write_all(&out).unwrap();
-        writer.write_all(&[b'\n']).unwrap();
+        writer.write_all(b"\n").unwrap();
     }
 }
