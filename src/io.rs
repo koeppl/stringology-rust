@@ -12,7 +12,7 @@ pub fn file2byte_vector(filename: &str, prefix_length: usize) -> Vec<u8> {
     } else {
         metadata.len()
     };
-    assert!(buffer_length <= std::usize::MAX as u64);
+    assert!(buffer_length <= usize::MAX as u64);
 
     let mut buffer = vec![0; buffer_length as usize];
     f.read_exact(&mut buffer).unwrap();

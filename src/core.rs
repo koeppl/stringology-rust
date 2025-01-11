@@ -286,7 +286,7 @@ pub fn compute_lcp<T: AsPrimitive<usize> + num::cast::FromPrimitive>(
     lcp
 }
 
-pub const INVALID_VALUE: u32 = std::u32::MAX;
+pub const INVALID_VALUE: u32 = u32::MAX;
 
 pub fn compute_psv<T: Ord>(arr: &[T]) -> Vec<u32> {
     let mut psv = vec![0; arr.len()];
@@ -408,8 +408,8 @@ impl Iterator for RandomStringGenerator {
             debug_assert_lt!(std::mem::size_of_val(&iter_round) * 8, 200);
             let most_significant_bit = bit_size(iter_round);
 
-            let alphabet_mask = std::usize::MAX
-                >> ((std::mem::size_of_val(&std::usize::MAX) * 8) as u8 - self.m_log_alphabet_size);
+            let alphabet_mask = usize::MAX
+                >> ((std::mem::size_of_val(&usize::MAX) * 8) as u8 - self.m_log_alphabet_size);
             let mut text = Vec::new();
             for i in 1..(most_significant_bit / self.m_log_alphabet_size) as usize {
                 text.push(
@@ -530,7 +530,7 @@ impl<'a, C: Eq + Copy + Clone> ConjugateIterator<'a, C> {
     }
 }
 
-impl<'a, C: Eq + Copy + Clone> Iterator for ConjugateIterator<'a, C> {
+impl<C: Eq + Copy + Clone> Iterator for ConjugateIterator<'_, C> {
     type Item = Vec<C>;
 
     fn next(&mut self) -> Option<Vec<C>> {
