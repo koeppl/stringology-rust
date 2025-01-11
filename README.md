@@ -5,6 +5,7 @@ This project contains some simple and easy-to-use tools for studying of strings 
 It currently consists of 
  - analytic tools
    - `lyndonfactorization` : counts the number of Lyndon factors. Outputs all ending positions of Lyndon factors when setting the environment variable `RUST_LOG=debug`
+   - `mus` : compute all minimal unique substrings
    - `count_r` : counts the number of runs in the BWT obtained by the suffix array
    - `count_sigma` : counts the number of different characters
    - `count_z` : counts the number of overlapping LZ77 factors
