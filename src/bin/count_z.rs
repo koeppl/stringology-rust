@@ -155,6 +155,10 @@ struct Args {
     /// the length of the prefix to parse
     #[arg(short, long, default_value_t = 0)]
     prefixlength: usize,
+
+    /// the output file to write the factors (otherwise skipped)
+    #[arg(short, long)]
+    outfilename: Option<String>,
 }
 
 fn main() {
@@ -212,4 +216,13 @@ fn main() {
         now.elapsed().as_millis(),
         factors.len()
     );
+
+    if let Some(filename) = args.outfilename {
+        let mut writer = io::stream_or_stdout(Some(&filename));
+        for fact in factors {
+            writer
+                .write_all(format!("({},{})", fact.pos, fact.len).as_bytes())
+                .unwrap();
+        }
+    }
 }
