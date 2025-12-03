@@ -9,9 +9,11 @@ It currently consists of
    - `count_r` : counts the number of runs in the BWT obtained by the suffix array
    - `count_sigma` : counts the number of different characters
    - `count_z` : counts the number of overlapping LZ77 factors
+   - `count_lexparse` : counts the number of lexparse factors
    - `entropy` : counts the k-th order empirical entropy
    - `entropykmer` : counts the k-th order empirical entropy via k-mers, `k \in [1..7]`
  - word generators with program `word`
+   - `enumerate` : enumerates all strings of a specific length and alphabet size, starting with character `a`
    - `thuemorse` : computes the n-th [Thue-Morse word](https://oeis.org/A010060)
    - `fibonacci` : computes the n-th [Fibonacci word](https://oeis.org/A003849)
    - `perioddoubling` computes the n-th [period-doubling sequence](https://oeis.org/A096268)
